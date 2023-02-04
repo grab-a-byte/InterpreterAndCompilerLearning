@@ -1,6 +1,9 @@
 package evaluator
 
-import "monkey/object"
+import (
+	"fmt"
+	"monkey/object"
+)
 
 var builtIns = map[string]*object.BuiltIn{
 	"len": {
@@ -17,6 +20,14 @@ var builtIns = map[string]*object.BuiltIn{
 			default:
 				return newError("Unsupported Type for builtin function 'len'")
 			}
+		},
+	},
+	"puts": {
+		Fn: func(args ...object.Object) object.Object {
+			for _, arg := range args {
+				fmt.Println(arg.Inspect())
+			}
+			return object.NULL
 		},
 	},
 }

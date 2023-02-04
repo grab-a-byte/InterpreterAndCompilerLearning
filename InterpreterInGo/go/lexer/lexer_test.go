@@ -29,6 +29,7 @@ func TestNextToken(t *testing.T) {
 	"foobar"
 	"foo bar"
 	["foobar", 1, true]
+	{"hash": "map"}
 	`
 
 	tests := []struct {
@@ -113,6 +114,11 @@ func TestNextToken(t *testing.T) {
 		{token.COMMA, ","},
 		{token.TRUE, "true"},
 		{token.RBRACKET, "]"},
+		{token.LBRACE, "{"},
+		{token.STRING, "hash"},
+		{token.COLON, ":"},
+		{token.STRING, "map"},
+		{token.RBRACE, "}"},
 		{token.EOF, ""},
 	}
 

@@ -41,6 +41,7 @@ func New(lexer *lexer.Lexer) *Parser {
 	p.addPrefixFunc(token.FUNCTION, p.parseFunctionLiteral)
 	p.addPrefixFunc(token.STRING, p.parseStringLiteral)
 	p.addPrefixFunc(token.LBRACKET, p.parseArrayLiteral)
+	p.addPrefixFunc(token.LBRACE, p.parseHashLiteral)
 
 	//RegisterinfixFunctions
 	p.addInfixFunc(token.MINUS, p.parseInfixExpression)

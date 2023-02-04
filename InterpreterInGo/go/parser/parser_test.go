@@ -871,3 +871,40 @@ func TestIndexStatements(t *testing.T) {
 	}
 
 }
+
+func TestHasLiterals(t *testing.T) {
+	input := `{"one": 1, "two": 2, "three": 3}`
+	l := lexer.New(input)
+	p := New(l)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt := program.Statements[0].(*ast.ExpressionStatement)
+	hash, ok := stmt.Expression.(*ast.HashLiteral)
+
+	if !ok {
+		t.Fatalf("expected HasLiteral but got type %T", stmt.Expression)
+	}
+
+	if len(hash.Pairs) != 3 {
+		t.Fatalf("Unexpected number of pairs expected 3 got %d", len(hash.Pairs))
+	}
+
+	expected := map[string]int64{
+		"one":   1,
+		"two":   2,
+		"three": 3,
+	}
+
+	for k, v := range hash.Pairs {
+		literal, ok := k.(*ast.StringLiteral)
+		if !ok {
+			t.Fatalf("expected string literal as key, got %T", k)
+		}
+
+		expectedValue := expected[literal.Value]
+		testIntegerLiterals(t, v, expectedValue)
+	}
+
+}

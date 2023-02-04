@@ -3,12 +3,22 @@ package object
 import (
 	"bytes"
 	"fmt"
+	"hash/fnv"
 	"monkey/ast"
 	"strings"
 )
 
 type ObjectType string
 type BuiltInFunction func(args ...Object) Object
+
+type Hashable interface {
+	HashKey() HashKey
+}
+
+type HashKey struct {
+	Type  ObjectType
+	Value uint64
+}
 
 type Object interface {
 	Type() ObjectType
@@ -21,6 +31,12 @@ type Integer struct {
 
 func (i *Integer) Inspect() string  { return fmt.Sprintf("%d", i.Value) }
 func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
+func (i *Integer) HashKey() HashKey {
+	return HashKey{
+		Type:  i.Type(),
+		Value: uint64(i.Value),
+	}
+}
 
 type Boolean struct {
 	Value bool
@@ -28,6 +44,18 @@ type Boolean struct {
 
 func (b *Boolean) Inspect() string  { return fmt.Sprintf("%v", b.Value) }
 func (b *Boolean) Type() ObjectType { return BOOLEAN_OBJ }
+func (b *Boolean) HashKey() HashKey {
+	var value uint64
+	if b.Value {
+		value = 1
+	} else {
+		value = 0
+	}
+	return HashKey{
+		Type:  b.Type(),
+		Value: value,
+	}
+}
 
 type Null struct{}
 
@@ -77,6 +105,16 @@ type String struct {
 
 func (s *String) Inspect() string  { return fmt.Sprintf(`"%s"`, s.Value) }
 func (s *String) Type() ObjectType { return STRING_OBJECT }
+func (s *String) HashKey() HashKey {
+
+	h := fnv.New64a()
+	h.Write([]byte(s.Value))
+
+	return HashKey{
+		Type:  s.Type(),
+		Value: h.Sum64(),
+	}
+}
 
 type BuiltIn struct {
 	Fn BuiltInFunction
@@ -100,3 +138,29 @@ func (a *Array) Inspect() string {
 }
 
 func (a *Array) Type() ObjectType { return ARRAY_OBJECT }
+
+type HashPair struct {
+	Key   Object
+	Value Object
+}
+
+type HashMap struct {
+	Pairs map[HashKey]HashPair
+}
+
+func (hm *HashMap) Type() ObjectType { return HASH_OBJECT }
+func (hm *HashMap) Inspect() string {
+	var out bytes.Buffer
+
+	pairs := []string{}
+
+	for _, val := range hm.Pairs {
+		pairs = append(pairs, fmt.Sprintf("%s : %s", val.Key.Inspect(), val.Value.Inspect()))
+	}
+
+	out.WriteRune('{')
+	out.WriteString(strings.Join(pairs, ","))
+	out.WriteRune('}')
+
+	return out.String()
+}

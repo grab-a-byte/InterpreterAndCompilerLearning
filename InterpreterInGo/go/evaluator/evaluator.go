@@ -75,11 +75,41 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return &object.Array{Items: objects}
 	case *ast.IndexExpression:
 		return evalIndexExpression(node, env)
+	case *ast.HashLiteral:
+		return evalHashLiteral(node, env)
 	default:
 		return newError("unknown type: %T", node)
 	}
 
 	return nil
+}
+
+func evalHashLiteral(node *ast.HashLiteral, env *object.Environment) object.Object {
+	pairs := make(map[object.HashKey]object.HashPair)
+	for keyNode, valueNode := range node.Pairs {
+		key := Eval(keyNode, env)
+		if isError(key) {
+			return key
+		}
+
+		hashKey, ok := key.(object.Hashable)
+		if !ok {
+			return newError("unable to use as HashKey %s", key.Type())
+		}
+
+		value := Eval(valueNode, env)
+		if isError(value) {
+			return value
+		}
+
+		hashed := hashKey.HashKey()
+		pairs[hashed] = object.HashPair{
+			Key:   key,
+			Value: value,
+		}
+	}
+
+	return &object.HashMap{Pairs: pairs}
 }
 
 func evalIndexExpression(exp *ast.IndexExpression, env *object.Environment) object.Object {
@@ -92,18 +122,50 @@ func evalIndexExpression(exp *ast.IndexExpression, env *object.Environment) obje
 		return object.NULL
 	}
 
-	if left.Type() != object.ARRAY_OBJECT || idx.Type() != object.INTEGER_OBJ {
+	if left.Type() == object.ARRAY_OBJECT {
+		return evalArrayIndex(left, idx)
+	} else if left.Type() == object.HASH_OBJECT {
+		return evalHashIndex(left, idx)
+	}
+
+	return newError("index operator not supported for type %s", left.Type())
+}
+
+func evalHashIndex(hash, idx object.Object) object.Object {
+	if hash.Type() != object.HASH_OBJECT {
 		return object.NULL
 	}
 
-	arr := left.(*object.Array)
+	hashMap := hash.(*object.HashMap)
+	key, ok := idx.(object.Hashable)
+
+	if !ok {
+		return newError("unusable hash key: %s", idx.Type())
+	}
+
+	pair, ok := hashMap.Pairs[key.HashKey()]
+	if !ok {
+		return object.NULL
+	}
+
+	return pair.Value
+
+}
+
+func evalArrayIndex(arr, idx object.Object) object.Object {
+
+	if arr.Type() != object.ARRAY_OBJECT || idx.Type() != object.INTEGER_OBJ {
+		return object.NULL
+	}
+
+	array := arr.(*object.Array)
 	index := idx.(*object.Integer)
 
-	if index.Value < 0 || index.Value > int64(len(arr.Items))-1 {
+	if index.Value < 0 || index.Value > int64(len(array.Items))-1 {
 		return object.NULL
 	}
 
-	return arr.Items[index.Value]
+	return array.Items[index.Value]
 }
 
 func evalFunction(function object.Object, params []object.Object) object.Object {

@@ -10,6 +10,7 @@ const (
 	STRING_OBJECT         = "STRING_OBJECT"
 	BUILT_IN_OBJECT       = "BUILT_IN_OBJECT"
 	ARRAY_OBJECT          = "ARRAY_OBJECT"
+	HASH_OBJECT           = "HASH_OBJECT"
 )
 
 var (

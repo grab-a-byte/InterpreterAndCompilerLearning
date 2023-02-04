@@ -11,7 +11,6 @@ type Node interface {
 	TokenLiteral() string
 	fmt.Stringer
 }
-
 type Expression interface {
 	Node
 	expressionNode()
@@ -270,4 +269,26 @@ func (ie *IndexExpression) expressionNode()      {}
 func (ie *IndexExpression) TokenLiteral() string { return ie.Token.Literal }
 func (ie *IndexExpression) String() string {
 	return fmt.Sprintf("%s[%s]", ie.Left.String(), ie.Index.String())
+}
+
+type HashLiteral struct {
+	Token token.Token
+	Pairs map[Expression]Expression
+}
+
+func (hl *HashLiteral) expressionNode()      {}
+func (hl *HashLiteral) TokenLiteral() string { return hl.Token.Literal }
+func (hl *HashLiteral) String() string {
+	var out bytes.Buffer
+	var pairs []string
+
+	for key, value := range hl.Pairs {
+		pairs = append(pairs, fmt.Sprintf("{%s:%s}", key.String(), value.String()))
+	}
+
+	out.WriteString("{")
+	out.WriteString(strings.Join(pairs, ","))
+	out.WriteString("}")
+
+	return out.String()
 }
