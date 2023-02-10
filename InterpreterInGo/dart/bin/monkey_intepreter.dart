@@ -1,5 +1,13 @@
-import 'package:monkey_intepreter/monkey_intepreter.dart' as monkey_intepreter;
+import 'package:monkey_intepreter/lexer.dart';
+import 'package:monkey_intepreter/token.dart';
 
 void main(List<String> arguments) {
-  print('Hello world: ${monkey_intepreter.calculate()}!');
+  Lexer l = Lexer("()");
+
+  var t = l.nextToken();
+
+  while (t.runtimeType != EndOfFile) {
+    print(t.runtimeType);
+    t = l.nextToken();
+  }
 }
