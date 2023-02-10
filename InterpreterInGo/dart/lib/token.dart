@@ -51,6 +51,26 @@ class Colon extends Token {
   Colon() : super(":");
 }
 
+class Assign extends Token {
+  Assign() : super("=");
+}
+
+class Number extends Token {
+  Number(String literal) : super(literal);
+}
+
+class Identifier extends Token {
+  Identifier(String literal) : super(literal);
+}
+
+class Func extends Token {
+  Func(String literal) : super(literal);
+}
+
+class Let extends Token {
+  Let(String literal) : super(literal);
+}
+
 class EndOfFile extends Token {
   EndOfFile() : super("EOF");
 }
