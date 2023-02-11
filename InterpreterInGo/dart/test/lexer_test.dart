@@ -18,6 +18,9 @@ void main() {
     123.456
     func
     let x = 5
+    ==
+    !
+    !=
     ''';
 
     Lexer lexer = Lexer(input);
@@ -35,13 +38,16 @@ void main() {
       TokenLiteralPair(SemiColon, null),
       TokenLiteralPair(Assign, null),
       TokenLiteralPair(Identifier, "hello"),
-      TokenLiteralPair(Number, "123"),
-      TokenLiteralPair(Number, "123.456"),
+      TokenLiteralPair(Integer, "123"),
+      TokenLiteralPair(Float, "123.456"),
       TokenLiteralPair(Func, null),
       TokenLiteralPair(Let, null),
       TokenLiteralPair(Identifier, "x"),
       TokenLiteralPair(Assign, null),
-      TokenLiteralPair(Number, "5"),
+      TokenLiteralPair(Integer, "5"),
+      TokenLiteralPair(Equals, null),
+      TokenLiteralPair(Bang, null),
+      TokenLiteralPair(NotEquals, null),
       TokenLiteralPair(EndOfFile, null)
     ];
 

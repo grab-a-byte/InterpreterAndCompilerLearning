@@ -13,30 +13,82 @@ class Lexer {
     _skipWhitespace();
     if (_readPosition >= _input.length) return EndOfFile();
 
-    Token Function()? tokFn = _singleCharTokens[_currentChar()];
-    if (tokFn != null) {
-      _readPosition += 1;
-      return tokFn();
-    }
+    Token? token = null;
 
-    if (_isAlpha(_currentChar())) {
-      var literal = _parseIdentifier();
-      var keywordFunc = _keywords[literal];
-      return keywordFunc == null ? Identifier(literal) : keywordFunc(literal);
-    }
+    switch (_currentChar()) {
+      case "+":
+        token = Plus();
+        break;
+      case '-':
+        token = Dash();
+        break;
+      case '{':
+        token = LeftBrace();
+        break;
+      case '}':
+        token = RightBrace();
+        break;
+      case '(':
+        token = LeftParen();
+        break;
+      case ')':
+        token = RightParen();
+        break;
+      case '[':
+        token = LeftBracket();
+        break;
+      case ']':
+        token = RightBracket();
+        break;
+      case ',':
+        token = Comma();
+        break;
+      case ':':
+        token = Colon();
+        break;
+      case ';':
+        token = SemiColon();
+        break;
+      case '=':
+        if (_nextChar() == "=") {
+          _readPosition += 1;
+          token = Equals();
+          break;
+        }
+        token = Assign();
+        break;
+      case '!':
+        if (_nextChar() == "=") {
+          _readPosition += 1;
+          token = NotEquals();
+          break;
+        }
+        token = Bang();
+        break;
+      default:
+        if (_isAlpha(_currentChar())) {
+          var literal = _readIdentifier();
+          var keywordFunc = _keywords[literal];
+          return keywordFunc == null
+              ? Identifier(literal)
+              : keywordFunc(literal);
+        }
 
-    if (_isNumber(_currentChar())) {
-      var literal = _parseNumber();
-      return Number(literal);
+        if (_isNumber(_currentChar())) {
+          token = _readNumber();
+        }
     }
 
     _readPosition += 1;
 
-    return Illegal();
+    return token ?? Illegal();
   }
 
   String? _currentChar() =>
       _readPosition >= _input.length ? null : _input[_readPosition];
+
+  String? _nextChar() =>
+      _readPosition + 1 >= _input.length ? null : _input[_readPosition + 1];
 
   bool _isNumber(String? c) => c == null ? false : double.tryParse(c) != null;
   bool _isAlpha(String? c) => c == null ? false : _alphaRegex.hasMatch(c);
@@ -51,7 +103,7 @@ class Lexer {
     }
   }
 
-  String _parseIdentifier() {
+  String _readIdentifier() {
     var startPosition = _readPosition;
     while (_isAlpha(_currentChar())) {
       _readPosition += 1;
@@ -59,12 +111,12 @@ class Lexer {
     return _input.substring(startPosition, _readPosition);
   }
 
-  String _parseNumber() {
+  Token _readNumber() {
     var firstPart = parseNumeric();
-    if (_currentChar() != ".") return firstPart;
+    if (_currentChar() != ".") return Integer(firstPart);
     _readPosition += 1;
     var secondPart = parseNumeric();
-    return "$firstPart.$secondPart";
+    return Float("$firstPart.$secondPart");
   }
 
   String parseNumeric() {
@@ -78,20 +130,5 @@ class Lexer {
   final Map<String, Token Function(String)> _keywords = {
     "func": Func.new,
     "let": Let.new
-  };
-
-  final Map<String, Token Function()> _singleCharTokens = {
-    '+': Plus.new,
-    '-': Dash.new,
-    '{': LeftBrace.new,
-    '}': RightBrace.new,
-    '(': LeftParen.new,
-    ')': RightParen.new,
-    '[': LeftBracket.new,
-    ']': RightBracket.new,
-    ',': Comma.new,
-    ':': Colon.new,
-    ';': SemiColon.new,
-    '=': Assign.new
   };
 }

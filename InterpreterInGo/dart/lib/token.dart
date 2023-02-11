@@ -7,6 +7,7 @@ class Illegal extends Token {
   Illegal() : super("ILLEGAL");
 }
 
+// Single Char Tokens
 class Plus extends Token {
   Plus() : super("+");
 }
@@ -55,8 +56,26 @@ class Assign extends Token {
   Assign() : super("=");
 }
 
-class Number extends Token {
-  Number(String literal) : super(literal);
+class Bang extends Token {
+  Bang() : super("!");
+}
+
+//Multi-Char Tokens
+class Equals extends Token {
+  Equals() : super("==");
+}
+
+class NotEquals extends Token {
+  NotEquals() : super("!=");
+}
+
+//Identifiers
+class Integer extends Token {
+  Integer(String literal) : super(literal);
+}
+
+class Float extends Token {
+  Float(String literal) : super(literal);
 }
 
 class Identifier extends Token {
