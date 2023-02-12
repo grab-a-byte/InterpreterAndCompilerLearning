@@ -82,12 +82,17 @@ class Identifier extends Token {
   Identifier(String literal) : super(literal);
 }
 
+//Keywords
 class Func extends Token {
   Func(String literal) : super(literal);
 }
 
 class Let extends Token {
   Let(String literal) : super(literal);
+}
+
+class If extends Token {
+  If(String literal) : super(literal);
 }
 
 class EndOfFile extends Token {

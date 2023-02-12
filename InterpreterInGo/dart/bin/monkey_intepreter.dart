@@ -1,13 +1,7 @@
-import 'package:monkey_intepreter/lexer.dart';
-import 'package:monkey_intepreter/token.dart';
+import 'package:monkey_intepreter/repl.dart';
 
 void main(List<String> arguments) {
-  Lexer l = Lexer("()");
+  var repl = REPL();
 
-  var t = l.nextToken();
-
-  while (t.runtimeType != EndOfFile) {
-    print(t.runtimeType);
-    t = l.nextToken();
-  }
+  repl.start();
 }

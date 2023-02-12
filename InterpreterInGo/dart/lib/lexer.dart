@@ -10,10 +10,13 @@ class Lexer {
   Lexer(this._input);
 
   Token nextToken() {
-    _skipWhitespace();
     if (_readPosition >= _input.length) return EndOfFile();
 
-    Token? token = null;
+    _skipWhitespace();
+
+    if (_readPosition >= _input.length) return EndOfFile();
+
+    Token? token;
 
     switch (_currentChar()) {
       case "+":
@@ -112,14 +115,14 @@ class Lexer {
   }
 
   Token _readNumber() {
-    var firstPart = parseNumeric();
+    var firstPart = _parseNumeric();
     if (_currentChar() != ".") return Integer(firstPart);
     _readPosition += 1;
-    var secondPart = parseNumeric();
+    var secondPart = _parseNumeric();
     return Float("$firstPart.$secondPart");
   }
 
-  String parseNumeric() {
+  String _parseNumeric() {
     var startPosition = _readPosition;
     while (_isNumber(_currentChar())) {
       _readPosition += 1;
@@ -129,6 +132,7 @@ class Lexer {
 
   final Map<String, Token Function(String)> _keywords = {
     "func": Func.new,
-    "let": Let.new
+    "let": Let.new,
+    "if": If.new
   };
 }
