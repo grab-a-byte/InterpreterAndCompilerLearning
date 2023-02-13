@@ -1,5 +1,6 @@
 import 'package:monkey_intepreter/abstract_syntax_tree/ast.dart';
 import 'package:monkey_intepreter/abstract_syntax_tree/expressions/identifier_expression.dart';
+import 'package:monkey_intepreter/abstract_syntax_tree/expressions/integer_expression.dart';
 import 'package:monkey_intepreter/abstract_syntax_tree/statements/let_statement.dart';
 import 'package:monkey_intepreter/token.dart';
 
@@ -20,6 +21,7 @@ class Parser {
       var statement = _parseStatement();
       //May fail, will be fixed when parseStatment is not nullable
       program.statements.add(statement!);
+      _nextToken();
     }
 
     return program;
@@ -36,26 +38,30 @@ class Parser {
   }
 
   LetStatement? _parseLetStatement() {
-    _nextToken();
-
     if (!_expectPeek(Identifier)) {
       return null;
     }
 
     var ident = IdentifierExpression(_currentToken.literal);
 
-    if (!_expectPeek(Equals)) {
+    if (!_expectPeek(Assign)) {
       return null;
     }
 
     _nextToken();
     var expression = _parseExpression();
 
-    return LetStatement(ident, expression!);
+    if (expression == null) {
+      return null;
+    }
+    return LetStatement(ident, expression);
   }
 
   Expression? _parseExpression() {
-    //TODO return
+    if (_currentToken.runtimeType == Integer) {
+      return IntegerExpression(int.parse(_currentToken.literal));
+    }
+
     return null;
   }
 
