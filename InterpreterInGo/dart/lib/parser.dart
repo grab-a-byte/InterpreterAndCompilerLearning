@@ -8,14 +8,26 @@ import 'package:monkey_intepreter/token.dart';
 
 import 'lexer.dart';
 
+typedef PrefixFunction = Expression? Function();
+typedef PostfixFunction = Expression? Function(Expression);
+
 class Parser {
   final Lexer _lexer;
   Token _currentToken;
   Token _peekToken;
 
+  final Map<Type, PrefixFunction> _prefixFunctions = {};
+  // final Map<Type, PostfixFunction> _postfixFunctions = {};
+
   Parser(this._lexer)
       : _currentToken = _lexer.nextToken(),
-        _peekToken = _lexer.nextToken();
+        _peekToken = _lexer.nextToken() {
+    // Map Prefix functions
+    _prefixFunctions[Identifier] = _parseIdentiferExpression;
+    _prefixFunctions[Integer] = _parseIntegerExpression;
+
+    //Map Postfix functions
+  }
 
   Program parseProgram() {
     var program = Program();
@@ -31,6 +43,22 @@ class Parser {
     return program;
   }
 
+  // Parsing Helpers
+  bool _expectPeek(Type tokenType) {
+    if (_peekToken.runtimeType != tokenType) {
+      return false;
+    }
+
+    _nextToken();
+    return true;
+  }
+
+  void _nextToken() {
+    _currentToken = _peekToken;
+    _peekToken = _lexer.nextToken();
+  }
+
+  //Statement Parsers
   Statement? _parseStatement() {
     switch (_currentToken.runtimeType) {
       case Let:
@@ -81,25 +109,26 @@ class Parser {
     return LetStatement(ident, expression);
   }
 
+  //Expression Parsing
   Expression? _parseExpression() {
-    if (_currentToken.runtimeType == Integer) {
-      return IntegerExpression(int.parse(_currentToken.literal));
-    }
+    var prefixFunc = _prefixFunctions[_currentToken.runtimeType];
+    if (prefixFunc == null) return null;
 
-    return null;
+    var left = prefixFunc();
+
+    return left;
   }
 
-  bool _expectPeek(Type tokenType) {
-    if (_peekToken.runtimeType != tokenType) {
-      return false;
-    }
-
-    _nextToken();
-    return true;
+  // Prefix Parsers
+  Expression? _parseIdentiferExpression() {
+    return IdentifierExpression(_currentToken.literal);
   }
 
-  void _nextToken() {
-    _currentToken = _peekToken;
-    _peekToken = _lexer.nextToken();
+  Expression? _parseIntegerExpression() {
+    var value = int.tryParse(_currentToken.literal, radix: 10);
+    if (value == null) return null;
+    return IntegerExpression(value);
   }
+
+  //Postfix Parsers
 }
