@@ -1,7 +1,9 @@
 import 'package:monkey_intepreter/abstract_syntax_tree/ast.dart';
 import 'package:monkey_intepreter/abstract_syntax_tree/expressions/identifier_expression.dart';
 import 'package:monkey_intepreter/abstract_syntax_tree/expressions/integer_expression.dart';
+import 'package:monkey_intepreter/abstract_syntax_tree/statements/expression_statement.dart';
 import 'package:monkey_intepreter/abstract_syntax_tree/statements/let_statement.dart';
+import 'package:monkey_intepreter/abstract_syntax_tree/statements/return_statement.dart';
 import 'package:monkey_intepreter/token.dart';
 
 import 'lexer.dart';
@@ -15,26 +17,48 @@ class Parser {
       : _currentToken = _lexer.nextToken(),
         _peekToken = _lexer.nextToken();
 
-  Program? parseProgram() {
+  Program parseProgram() {
     var program = Program();
+
     while (_currentToken.runtimeType != EndOfFile) {
       var statement = _parseStatement();
-      //May fail, will be fixed when parseStatment is not nullable
-      program.statements.add(statement!);
+      if (statement != null) {
+        program.statements.add(statement);
+      }
       _nextToken();
     }
 
     return program;
   }
 
-  //TODO make no-nullable
   Statement? _parseStatement() {
     switch (_currentToken.runtimeType) {
       case Let:
         return _parseLetStatement();
+      case Return:
+        return _parseReturnStatement();
+      default:
+        return _parseExpressionStatement();
+    }
+  }
+
+  ExpressionStatement? _parseExpressionStatement() {
+    Expression? exp = _parseExpression();
+    if (exp == null) {
+      return null;
+    }
+    return ExpressionStatement(exp);
+  }
+
+  ReturnStatement? _parseReturnStatement() {
+    _nextToken();
+
+    Expression? expresison = _parseExpression();
+    if (expresison == null) {
+      return null;
     }
 
-    return null;
+    return ReturnStatement(expresison);
   }
 
   LetStatement? _parseLetStatement() {

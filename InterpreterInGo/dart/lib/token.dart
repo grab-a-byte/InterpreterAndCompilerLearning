@@ -95,6 +95,10 @@ class If extends Token {
   If(String literal) : super(literal);
 }
 
+class Return extends Token {
+  Return(String literal) : super(literal);
+}
+
 class EndOfFile extends Token {
   EndOfFile() : super("EOF");
 }

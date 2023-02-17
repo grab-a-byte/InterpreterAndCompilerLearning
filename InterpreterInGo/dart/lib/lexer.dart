@@ -133,6 +133,7 @@ class Lexer {
   final Map<String, Token Function(String)> _keywords = {
     "func": Func.new,
     "let": Let.new,
-    "if": If.new
+    "if": If.new,
+    "return": Return.new
   };
 }
