@@ -4,12 +4,14 @@ import 'package:monkey_intepreter/abstract_syntax_tree/expressions/integer_expre
 import 'package:monkey_intepreter/abstract_syntax_tree/statements/expression_statement.dart';
 import 'package:monkey_intepreter/abstract_syntax_tree/statements/let_statement.dart';
 import 'package:monkey_intepreter/abstract_syntax_tree/statements/return_statement.dart';
+import 'package:monkey_intepreter/parser/precedences.dart';
 import 'package:monkey_intepreter/token.dart';
 
-import 'lexer.dart';
+import '../lexer.dart';
 
 typedef PrefixFunction = Expression? Function();
-typedef PostfixFunction = Expression? Function(Expression);
+
+typedef InfixFunction = Expression? Function(Expression);
 
 class Parser {
   final Lexer _lexer;
@@ -17,7 +19,7 @@ class Parser {
   Token _peekToken;
 
   final Map<Type, PrefixFunction> _prefixFunctions = {};
-  // final Map<Type, PostfixFunction> _postfixFunctions = {};
+  final Map<Type, InfixFunction> _infixFunctions = {};
 
   Parser(this._lexer)
       : _currentToken = _lexer.nextToken(),
@@ -58,6 +60,12 @@ class Parser {
     _peekToken = _lexer.nextToken();
   }
 
+  Precedence currentPrecedence() =>
+      precedenceMap[_currentToken.runtimeType] ?? Precedence.lowest;
+
+  Precedence peekPrecedence() =>
+      precedenceMap[_peekToken.runtimeType] ?? Precedence.lowest;
+
   //Statement Parsers
   Statement? _parseStatement() {
     switch (_currentToken.runtimeType) {
@@ -71,7 +79,7 @@ class Parser {
   }
 
   ExpressionStatement? _parseExpressionStatement() {
-    Expression? exp = _parseExpression();
+    Expression? exp = _parseExpression(Precedence.lowest);
     if (exp == null) {
       return null;
     }
@@ -81,7 +89,7 @@ class Parser {
   ReturnStatement? _parseReturnStatement() {
     _nextToken();
 
-    Expression? expresison = _parseExpression();
+    Expression? expresison = _parseExpression(Precedence.lowest);
     if (expresison == null) {
       return null;
     }
@@ -101,7 +109,7 @@ class Parser {
     }
 
     _nextToken();
-    var expression = _parseExpression();
+    var expression = _parseExpression(Precedence.lowest);
 
     if (expression == null) {
       return null;
@@ -110,11 +118,21 @@ class Parser {
   }
 
   //Expression Parsing
-  Expression? _parseExpression() {
+  Expression? _parseExpression(Precedence precedence) {
     var prefixFunc = _prefixFunctions[_currentToken.runtimeType];
     if (prefixFunc == null) return null;
 
     var left = prefixFunc();
+
+    if (left == null) return null;
+
+    if (_peekToken.runtimeType != SemiColon &&
+        precedence.index < peekPrecedence().index) {
+      var infixFunc = _infixFunctions[_peekToken.runtimeType];
+      if (infixFunc == null) return left;
+      _nextToken();
+      left = infixFunc(left);
+    }
 
     return left;
   }

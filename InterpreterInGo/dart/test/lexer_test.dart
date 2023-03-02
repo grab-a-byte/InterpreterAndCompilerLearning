@@ -21,6 +21,7 @@ void main() {
     ==
     !
     !=
+    /*
     ''';
 
     Lexer lexer = Lexer(input);
@@ -29,7 +30,7 @@ void main() {
       TokenLiteralPair(RightParen, null),
       TokenLiteralPair(LeftBrace, null),
       TokenLiteralPair(RightBrace, null),
-      TokenLiteralPair(Dash, null),
+      TokenLiteralPair(Minus, null),
       TokenLiteralPair(Plus, null),
       TokenLiteralPair(LeftBracket, null),
       TokenLiteralPair(RightBracket, null),
@@ -48,6 +49,8 @@ void main() {
       TokenLiteralPair(Equals, null),
       TokenLiteralPair(Bang, null),
       TokenLiteralPair(NotEquals, null),
+      TokenLiteralPair(Slash, null),
+      TokenLiteralPair(Star, null),
       TokenLiteralPair(EndOfFile, null)
     ];
 

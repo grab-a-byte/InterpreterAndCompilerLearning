@@ -23,7 +23,13 @@ class Lexer {
         token = Plus();
         break;
       case '-':
-        token = Dash();
+        token = Minus();
+        break;
+      case '*':
+        token = Star();
+        break;
+      case '/':
+        token = Slash();
         break;
       case '{':
         token = LeftBrace();

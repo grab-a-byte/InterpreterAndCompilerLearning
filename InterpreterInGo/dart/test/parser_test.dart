@@ -3,7 +3,7 @@ import 'package:monkey_intepreter/abstract_syntax_tree/statements/expression_sta
 import 'package:monkey_intepreter/abstract_syntax_tree/statements/let_statement.dart';
 import 'package:monkey_intepreter/abstract_syntax_tree/statements/return_statement.dart';
 import 'package:monkey_intepreter/lexer.dart';
-import 'package:monkey_intepreter/parser.dart';
+import 'package:monkey_intepreter/parser/parser.dart';
 import 'package:test/test.dart';
 
 void main() {

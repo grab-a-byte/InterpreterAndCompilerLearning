@@ -12,8 +12,16 @@ class Plus extends Token {
   Plus() : super("+");
 }
 
-class Dash extends Token {
-  Dash() : super("-");
+class Minus extends Token {
+  Minus() : super("-");
+}
+
+class Star extends Token {
+  Star() : super("*");
+}
+
+class Slash extends Token {
+  Slash() : super("/");
 }
 
 class LeftParen extends Token {
