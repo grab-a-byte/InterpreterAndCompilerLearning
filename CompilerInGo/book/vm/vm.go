@@ -9,6 +9,9 @@ import (
 
 const StackSize = 2048
 
+var trueObj = object.Boolean{Value: true}
+var falseObj = object.Boolean{Value: false}
+
 type VM struct {
 	constants    []object.Object
 	instructions code.Instructions
@@ -44,14 +47,63 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpTrue:
+			err := vm.push(&trueObj)
+			if err != nil {
+				return err
+			}
+		case code.OpFalse:
+			err := vm.push(&falseObj)
+			if err != nil {
+				return err
+			}
 		case code.OpAdd, code.OpSub, code.OpDiv, code.OpMul:
 			vm.executeBinaryOperation(op)
+		case code.OpEqual, code.OpNotEqual, code.OpGreaterThan:
+			err := vm.executeComparrison(op)
+			if err != nil {
+				return err
+			}
 		case code.OpPop:
 			vm.pop()
 		}
 	}
 
 	return nil
+}
+
+func (vm *VM) executeComparrison(op code.Opcode) error {
+	right := vm.pop()
+	left := vm.pop()
+
+	if left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ {
+		return vm.executeIntegerComparison(op, left, right)
+	}
+
+	switch op {
+	case code.OpEqual:
+		return vm.push(nativeBoolToBooleanObject(left == right))
+	case code.OpNotEqual:
+		return vm.push(nativeBoolToBooleanObject(left != right))
+	}
+
+	return fmt.Errorf("unable to do comparrison of types %T and %T", left, right)
+}
+
+func (vm *VM) executeIntegerComparison(op code.Opcode, left, right object.Object) error {
+	leftVal := left.(*object.Integer).Value
+	rightVal := right.(*object.Integer).Value
+
+	switch op {
+	case code.OpEqual:
+		return vm.push(nativeBoolToBooleanObject(leftVal == rightVal))
+	case code.OpNotEqual:
+		return vm.push(nativeBoolToBooleanObject(leftVal != rightVal))
+	case code.OpGreaterThan:
+		return vm.push(nativeBoolToBooleanObject(leftVal > rightVal))
+	default:
+		return fmt.Errorf("unknown operator on integers: %d", op)
+	}
 }
 
 func (vm *VM) executeBinaryOperation(op code.Opcode) error {
@@ -103,4 +155,12 @@ func (vm *VM) pop() object.Object {
 	o := vm.stack[vm.stackPointer-1]
 	vm.stackPointer--
 	return o
+}
+
+func nativeBoolToBooleanObject(input bool) object.Object {
+	if input {
+		return &trueObj
+	}
+
+	return &falseObj
 }
