@@ -174,6 +174,31 @@ func TestBooleanExpressions(t *testing.T) {
 	runCompilerTests(t, tests)
 }
 
+func TestConditionals(t *testing.T) {
+	test := []compilerTestCase{
+		{
+			input:             "if(true){10}; 3333;",
+			expectedConstants: []interface{}{10, 3333},
+			expectedInstructions: []code.Instructions{
+				// 00000
+				code.Make(code.OpTrue),
+				// 0001
+				code.Make(code.OpJumpNotTruthy, 7),
+				// 00004
+				code.Make(code.OpConstant, 0),
+				// 0007
+				code.Make(code.OpPop),
+				// 0008
+				code.Make(code.OpConstant, 1),
+				// 00011
+				code.Make(code.OpPop),
+			},
+		},
+	}
+
+	runCompilerTests(t, test)
+}
+
 func parse(s string) *ast.Program {
 	l := lexer.New(s)
 	p := parser.New(l)
@@ -214,7 +239,7 @@ func testInstructions(t *testing.T, expected []code.Instructions, actual code.In
 
 	for i, ins := range concatted {
 		if actual[i] != ins {
-			return fmt.Errorf("wrong instruction found at %d . Wanted %q, got %q", i, concatted, actual)
+			return fmt.Errorf("wrong instruction found at %d . \nWanted %q,\nGot %q", i, concatted, actual)
 		}
 	}
 
@@ -233,7 +258,7 @@ func concatInstructions(ins []code.Instructions) code.Instructions {
 
 func testConstants(t *testing.T, expected []interface{}, actual []object.Object) error {
 	if len(expected) != len(actual) {
-		return fmt.Errorf("wrong number of constants: expected %d, got %d", len(expected), len(actual))
+		return fmt.Errorf("wrong number of constants: \nexpected %d, \ngot %d", len(expected), len(actual))
 	}
 
 	for i, constant := range expected {
