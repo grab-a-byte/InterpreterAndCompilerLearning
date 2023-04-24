@@ -42,12 +42,14 @@ func (c *Compiler) Compile(node ast.Node) error {
 				return err
 			}
 		}
+
 	case *ast.ExpressionStatement:
 		err := c.Compile(node.Expression)
 		if err != nil {
 			return err
 		}
 		c.emit(code.OpPop)
+
 	case *ast.InfixExpression:
 
 		if node.Operator == "<" { // Swap operator as use greater than
@@ -92,6 +94,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		default:
 			return fmt.Errorf("unknown operator %s", node.Operator)
 		}
+
 	case *ast.PrefixExpression:
 		err := c.Compile(node.Right)
 		if err != nil {
@@ -105,12 +108,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 		default:
 			return fmt.Errorf("unknown prefix operator : %s", node.Operator)
 		}
+
 	case *ast.IfExpression:
 		err := c.Compile(node.Condition)
 		if err != nil {
 			return err
 		}
-		//Bogus value to fix later
+		//Bogus value to fix later (see replace operand later)
 		jumpNotTruthyPos := c.emit(code.OpJumpNotTruthy, 9999)
 		err = c.Compile(node.Consequence)
 		if err != nil {
@@ -120,8 +124,29 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.removeLastPop()
 		}
 
-		afterConsequencePos := len(c.instructions)
-		c.replaceOperand(jumpNotTruthyPos, afterConsequencePos)
+		if node.Alternative == nil {
+			afterConsequencePos := len(c.instructions)
+			c.replaceOperand(jumpNotTruthyPos, afterConsequencePos)
+		} else {
+			//Another bous avalue to replace later
+			jumpPos := c.emit(code.OpJump, 9999)
+
+			afterConsequencePos := len(c.instructions)
+			c.replaceOperand(jumpNotTruthyPos, afterConsequencePos)
+
+			err := c.Compile(node.Alternative)
+			if err != nil {
+				return err
+			}
+
+			if c.lastInstructionIsPop() {
+				c.removeLastPop()
+			}
+
+			afterAlternativePos := len(c.instructions)
+			c.replaceOperand(jumpPos, afterAlternativePos)
+		}
+
 	case *ast.BlockStatement:
 		for _, s := range node.Statements {
 			err := c.Compile(s)
@@ -140,6 +165,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpFalse)
 		}
 	}
+
 	return nil
 }
 
