@@ -86,6 +86,10 @@ func testExpectedObject(t *testing.T, expected interface{}, actual object.Object
 		if err != nil {
 			t.Errorf("testBooleanObjectFailed: %s", err)
 		}
+	case object.Null:
+		if actual != nullObj {
+			t.Errorf("expected object to be null, got (%+v)", actual)
+		}
 	}
 }
 
@@ -135,6 +139,7 @@ func TestBooleanLogic(t *testing.T) {
 		{"!!true", true},
 		{"!!false", false},
 		{"!!5", true},
+		{"!( if(false) { 5 } )", true},
 	}
 
 	runVmTests(t, tests)
@@ -143,12 +148,14 @@ func TestBooleanLogic(t *testing.T) {
 func TestConditionals(t *testing.T) {
 	tests := []vmTestCase{
 		{"if(true) {5}", 5},
-		// {"if(false) {5}", nil}, // TODO try later, what would be expected behaviour?
-		{"if(false) {5} else {10}", 10},
-		{"if(1) {5}", 5},
-		{"if(1 < 2) {5}", 5},
-		{"if(1 < 2) {10} else {20}", 10},
-		{"if(1 > 2) {10} else {20}", 20},
+		{"if(false) { 5 } else { 10 }", 10},
+		{"if(1) { 5 }", 5},
+		{"if(1 < 2) { 5 }", 5},
+		{"if(1 < 2) { 10 } else { 20 }", 10},
+		{"if(1 > 2) { 10 } else { 20 }", 20},
+		{"if (1 > 2) { 10 }", nullObj},
+		{"if(false) {5}", nullObj},
+		{"if((if(false){ 10 })) { 10 } else { 20 }", 20},
 	}
 
 	runVmTests(t, tests)

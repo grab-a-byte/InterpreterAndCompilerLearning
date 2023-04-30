@@ -9,8 +9,9 @@ import (
 
 const StackSize = 2048
 
-var trueObj = object.Boolean{Value: true}
-var falseObj = object.Boolean{Value: false}
+var trueObj = &object.Boolean{Value: true}
+var falseObj = &object.Boolean{Value: false}
+var nullObj = &object.Null{}
 
 type VM struct {
 	constants    []object.Object
@@ -48,12 +49,17 @@ func (vm *VM) Run() error {
 				return err
 			}
 		case code.OpTrue:
-			err := vm.push(&trueObj)
+			err := vm.push(trueObj)
 			if err != nil {
 				return err
 			}
 		case code.OpFalse:
-			err := vm.push(&falseObj)
+			err := vm.push(falseObj)
+			if err != nil {
+				return err
+			}
+		case code.OpNull:
+			err := vm.push(nullObj)
 			if err != nil {
 				return err
 			}
@@ -98,6 +104,8 @@ func isTruthy(obj object.Object) bool {
 	switch obj := obj.(type) {
 	case *object.Boolean:
 		return obj.Value
+	case *object.Null:
+		return false
 	default:
 		return true
 	}
@@ -116,13 +124,10 @@ func (vm *VM) executeMinusOperator() error {
 
 func (vm *VM) executeBangOperator() error {
 	operand := vm.pop()
-	switch operand {
-	case &trueObj:
-		return vm.push(&falseObj)
-	case &falseObj:
-		return vm.push(&trueObj)
-	default:
-		return vm.push(&falseObj)
+	if isTruthy(operand) {
+		return vm.push(falseObj)
+	} else {
+		return vm.push(trueObj)
 	}
 }
 
@@ -213,8 +218,8 @@ func (vm *VM) pop() object.Object {
 
 func nativeBoolToBooleanObject(input bool) object.Object {
 	if input {
-		return &trueObj
+		return trueObj
 	}
 
-	return &falseObj
+	return falseObj
 }
