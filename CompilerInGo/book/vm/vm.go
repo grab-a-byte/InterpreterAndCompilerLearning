@@ -8,6 +8,7 @@ import (
 )
 
 const StackSize = 2048
+const GlobalsSize uint = 65536
 
 var trueObj = &object.Boolean{Value: true}
 var falseObj = &object.Boolean{Value: false}
@@ -19,6 +20,7 @@ type VM struct {
 
 	stack        []object.Object
 	stackPointer int // points to next free spot or last popped
+	globals      []object.Object
 }
 
 func New(bytecode *compiler.Bytecode) *VM {
@@ -28,7 +30,14 @@ func New(bytecode *compiler.Bytecode) *VM {
 
 		stack:        make([]object.Object, StackSize),
 		stackPointer: 0,
+		globals:      make([]object.Object, GlobalsSize),
 	}
+}
+
+func NewWithGlobalStore(bytecode *compiler.Bytecode, globals []object.Object) *VM {
+	vm := New(bytecode)
+	vm.globals = globals
+	return vm
 }
 
 func (vm *VM) LastPoppedStackElem() object.Object {
@@ -89,6 +98,19 @@ func (vm *VM) Run() error {
 			}
 		case code.OpMinus:
 			err := vm.executeMinusOperator()
+			if err != nil {
+				return err
+			}
+
+		case code.OpSetGlobal:
+			globalIndex := code.ReadUint16(vm.instructions[ip+1:])
+			ip += 2
+			vm.globals[globalIndex] = vm.pop()
+
+		case code.OpGetGlobal:
+			globalIndex := code.ReadUint16(vm.instructions[ip+1:])
+			ip += 2
+			err := vm.push(vm.globals[globalIndex])
 			if err != nil {
 				return err
 			}
