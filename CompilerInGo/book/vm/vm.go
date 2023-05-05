@@ -114,6 +114,15 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+
+		case code.OpArray:
+			numElements := int(code.ReadUint16(vm.instructions[ip+1:]))
+			ip += 2
+			array := vm.buildArray(vm.stackPointer-numElements, vm.stackPointer)
+			err := vm.push(array)
+			if err != nil {
+				return err
+			}
 		case code.OpPop:
 			vm.pop()
 		}
@@ -198,7 +207,22 @@ func (vm *VM) executeBinaryOperation(op code.Opcode) error {
 		return vm.executeIntegerBinaryOperation(op, left, right)
 	}
 
+	if leftType == object.STRING_OBJ && rightType == object.STRING_OBJ {
+		return vm.executeStringBinaryOperation(op, left, right)
+	}
+
 	return fmt.Errorf("unknown operator %d on type %s and %s", op, leftType, rightType)
+}
+
+func (vm *VM) executeStringBinaryOperation(op code.Opcode, left, right object.Object) error {
+	if op != code.OpAdd {
+		return fmt.Errorf("unable to do operation %q on strings", op)
+	}
+
+	leftValue := left.(*object.String).Value
+	rightValue := right.(*object.String).Value
+
+	return vm.push(&object.String{Value: leftValue + rightValue})
 }
 
 func (vm *VM) executeIntegerBinaryOperation(op code.Opcode, left, right object.Object) error {
@@ -236,6 +260,16 @@ func (vm *VM) pop() object.Object {
 	o := vm.stack[vm.stackPointer-1]
 	vm.stackPointer--
 	return o
+}
+
+func (vm *VM) buildArray(startIndex, endIndex int) object.Object {
+	elements := make([]object.Object, endIndex-startIndex)
+
+	for i := startIndex; i < endIndex; i++ {
+		elements[i-startIndex] = vm.stack[i]
+	}
+
+	return &object.Array{Elements: elements}
 }
 
 func nativeBoolToBooleanObject(input bool) object.Object {
