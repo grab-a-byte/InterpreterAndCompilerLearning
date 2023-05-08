@@ -119,7 +119,21 @@ func (vm *VM) Run() error {
 			numElements := int(code.ReadUint16(vm.instructions[ip+1:]))
 			ip += 2
 			array := vm.buildArray(vm.stackPointer-numElements, vm.stackPointer)
+
+			vm.stackPointer = vm.stackPointer - numElements
 			err := vm.push(array)
+			if err != nil {
+				return err
+			}
+		case code.OpHash:
+			numElements := int(code.ReadUint16(vm.instructions[ip+1:]))
+			ip += 2
+			hash, err := vm.buildHash(vm.stackPointer-numElements, vm.stackPointer)
+			if err != nil {
+				return err
+			}
+			vm.stackPointer = vm.stackPointer - numElements
+			err = vm.push(hash)
 			if err != nil {
 				return err
 			}
@@ -146,7 +160,7 @@ func (vm *VM) executeMinusOperator() error {
 	operand := vm.pop()
 
 	if operand.Type() != object.INTEGER_OBJ {
-		return fmt.Errorf("unable to execute minu operator on type %s", operand.Type())
+		return fmt.Errorf("unable to execute minus operator on type %s", operand.Type())
 	}
 
 	value := operand.(*object.Integer).Value
@@ -270,6 +284,25 @@ func (vm *VM) buildArray(startIndex, endIndex int) object.Object {
 	}
 
 	return &object.Array{Elements: elements}
+}
+
+func (vm *VM) buildHash(startIndex, endIndex int) (object.Object, error) {
+	hashedPairs := make(map[object.HashKey]object.HashPair)
+
+	for i := startIndex; i < endIndex; i += 2 {
+		key := vm.stack[i]
+		value := vm.stack[i+1]
+		pair := object.HashPair{Key: key, Value: value}
+
+		haskKey, ok := key.(object.Hashable)
+		if !ok {
+			return nil, fmt.Errorf("unable to has key %s", key.Type())
+		}
+
+		hashedPairs[haskKey.HashKey()] = pair
+	}
+
+	return &object.Hash{Pairs: hashedPairs}, nil
 }
 
 func nativeBoolToBooleanObject(input bool) object.Object {
