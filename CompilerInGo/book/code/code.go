@@ -30,6 +30,7 @@ const (
 	OpSetGlobal
 	OpArray
 	OpHash
+	OpIndex
 )
 
 type Defintion struct {
@@ -58,6 +59,7 @@ var definitions = map[Opcode]*Defintion{
 	OpSetGlobal:     {"OpSetGlobal", []int{2}},
 	OpArray:         {"OpArray", []int{2}},
 	OpHash:          {"OpHash", []int{2}},
+	OpIndex:         {"OpIndex", []int{}},
 }
 
 func Lookup(op byte) (*Defintion, error) {
@@ -110,7 +112,7 @@ func (ins Instructions) String() string {
 
 		operands, read := ReadOperands(def, ins[i+1:])
 
-		fmt.Fprintf(&out, "%04d %s\n", i, ins.fmtInstruction(def, operands))
+		fmt.Fprintf(&out, "%04d %s \n", i, ins.fmtInstruction(def, operands))
 
 		i += 1 + read
 	}
