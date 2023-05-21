@@ -102,6 +102,14 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpReturn:
+			vm.popFrame()
+			vm.pop()
+			err := vm.push(nullObj)
+			if err != nil {
+				return err
+			}
+
 		case code.OpJump:
 			pos := int(code.ReadUint16(ins[ip+1:]))
 			vm.currentFrame().instructionPointer = pos - 1

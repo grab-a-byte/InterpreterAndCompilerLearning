@@ -286,6 +286,48 @@ func TestCallingFunctionWithoutArguments(t *testing.T) {
 			`,
 			expected: 15,
 		},
+		{
+			input: `
+			let one = fn() {1}
+			let two = fn() {2}
+			one() + two()
+			`,
+			expected: 3,
+		},
+		{
+			input: `
+			let a = fn(){1}
+			let b = fn() {a() + 1}
+			b()
+			`,
+			expected: 2,
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
+func TestCallingFunctionsWithReturnStatements(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input:    "let a = fn(){return 99; 100}; a()",
+			expected: 99,
+		},
+		{
+			input:    "let a = fn(){return 88; return 100}; a()",
+			expected: 88,
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
+func TestFunctionsWithoutReturnValue(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input:    "let noReturn = fn(){}; noReturn();",
+			expected: nullObj,
+		},
 	}
 
 	runVmTests(t, tests)
