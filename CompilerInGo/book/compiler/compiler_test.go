@@ -522,11 +522,13 @@ func TestFunctionCalls(t *testing.T) {
 
 func TestCompilerScopes(t *testing.T) {
 	compiler := New()
+	globalSymbolTable := compiler.symbolTable
 	if compiler.scopeIndex != 0 {
 		t.Errorf("scopeIndex wrong: got %d expected %d", compiler.scopeIndex, 0)
 	}
 
 	compiler.emit(code.OpMul)
+
 	compiler.enterScope()
 	if compiler.scopeIndex != 1 {
 		t.Errorf("scopeIndex wrong: got %d expected %d", compiler.scopeIndex, 1)
@@ -543,9 +545,21 @@ func TestCompilerScopes(t *testing.T) {
 		t.Errorf("lastInstruction.OpCode wrong, expected %d, got %d", code.OpSub, last.OpCode)
 	}
 
+	if compiler.symbolTable.Outer != globalSymbolTable {
+		t.Errorf("compiler did not enclose symbol table!")
+	}
+
 	compiler.leaveScope()
 	if compiler.scopeIndex != 0 {
 		t.Errorf("scopeIndex wrong: got %d expected %d", compiler.scopeIndex, 0)
+	}
+
+	if compiler.symbolTable != globalSymbolTable {
+		t.Errorf("compiler did not restore global symbol table!")
+	}
+
+	if compiler.symbolTable.Outer != nil {
+		t.Errorf("compiler modified global symbol table incorrectly!")
 	}
 
 	compiler.emit(code.OpAdd)
@@ -562,6 +576,81 @@ func TestCompilerScopes(t *testing.T) {
 	if previous.OpCode != code.OpMul {
 		t.Errorf("previousInstruction.OpCode wrong, expected %d, got %d", code.OpMul, previous.OpCode)
 	}
+}
+
+func TestLetStatementScopes(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `
+			let num = 55;
+			fn(){ num }
+			`,
+			expectedConstants: []interface{}{
+				55,
+				[]code.Instructions{
+					code.Make(code.OpGetGlobal, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `
+			fn(){
+				let num = 55
+				num
+			}
+			`,
+			expectedConstants: []interface{}{
+				55,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpSetLocal, 0),
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `
+			fn() {
+				let x = 5;
+				let y = 10;
+
+				return x + y;
+			}
+			`,
+			expectedConstants: []interface{}{
+				5,
+				10,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpSetLocal, 0),
+					code.Make(code.OpConstant, 1),
+					code.Make(code.OpSetLocal, 1),
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpGetLocal, 1),
+					code.Make(code.OpAdd),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+
+	runCompilerTests(t, tests)
 }
 
 func parse(s string) *ast.Program {
