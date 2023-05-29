@@ -184,14 +184,13 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpCall:
-			fn, ok := vm.stack[vm.stackPointer-1].(*object.CompiledFunction)
-			if !ok {
-				return fmt.Errorf("tried to call a non-function")
-			}
+			numArgs := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().instructionPointer += 1
 
-			frame := NewFrame(fn, vm.stackPointer)
-			vm.pushFrame(frame)
-			vm.stackPointer = frame.basePointer + fn.NumLocals
+			err := vm.callFunction(int(numArgs))
+			if err != nil {
+				return err
+			}
 
 		case code.OpSetLocal:
 			localIndex := code.ReadUint8(ins[ip+1:])
@@ -227,6 +226,19 @@ func isTruthy(obj object.Object) bool {
 	default:
 		return true
 	}
+}
+
+func (vm *VM) callFunction(numArgs int) error {
+	fn, ok := vm.stack[vm.stackPointer-1-int(numArgs)].(*object.CompiledFunction)
+	if !ok {
+		return fmt.Errorf("tried to call a non-function")
+	}
+
+	frame := NewFrame(fn, vm.stackPointer-numArgs)
+	vm.pushFrame(frame)
+	vm.stackPointer = frame.basePointer + fn.NumLocals
+
+	return nil
 }
 
 func (vm *VM) currentFrame() *Frame {
