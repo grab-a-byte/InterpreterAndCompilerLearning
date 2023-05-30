@@ -422,3 +422,94 @@ func TestCallingFunctionsWithArgs(t *testing.T) {
 
 	runVmTests(t, tests)
 }
+
+func TestCallingFunctionsWithArgumentsAndBindings(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+			let sum = fn(a, b){
+				let c = a + b;
+				c
+			}
+			sum(1,2)
+			`,
+			expected: 3,
+		},
+		{
+			input: `
+			let sum = fn(a, b){
+				let c = a + b;
+				c
+			}
+			sum(1, 2) + sum(3, 4)
+			`,
+			expected: 10,
+		},
+		{
+			input: `
+			let sum = fn(a, b){
+				let c = a + b;
+				c
+			}
+			let outer = fn(){
+				sum(1, 2) + sum(3, 4)
+			}
+			outer()
+			`,
+			expected: 10,
+		},
+		{
+			input: `
+			let globalNum = 10
+			let sum = fn(a, b){
+				let c = a + b;
+				c + globalNum
+			}
+			let outer = fn(){
+				sum(1, 2) + sum(3, 4) + globalNum
+			}
+			outer() + globalNum
+			`,
+			expected: 50,
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
+func TestCallingFunctionsWithWrongNumberOfArguments(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input:    "let test =- fn() {1;}(1)",
+			expected: "wrong number of arguments: expected 0, got 1",
+		},
+		{
+			input:    "let test =- fn(a) {1;}()",
+			expected: "wrong number of arguments: expected 1, got 0",
+		},
+		{
+			input:    "let test =- fn(a, b) {1;}(1)",
+			expected: "wrong number of arguments: expected 2, got 1",
+		},
+	}
+
+	for _, tt := range tests {
+		program := parse(tt.input)
+
+		comp := compiler.New()
+		err := comp.Compile(program)
+		if err != nil {
+			t.Fatalf("compiler error: %s", err)
+		}
+
+		vm := New(comp.Bytecode())
+		err = vm.Run()
+		if err == nil {
+			t.Fatalf("expected VM error but resulted in none.")
+		}
+
+		if err.Error() != tt.expected {
+			t.Fatalf("expected error %q got %q", tt.expected, err.Error())
+		}
+	}
+}
