@@ -47,7 +47,7 @@ var BuiltIns = []struct {
 						len(args))
 				}
 				if args[0].Type() != ARRAY_OBJ {
-					return newError("argument to `first` must be ARRAY, got %s",
+					return newError("argument to `first` must be an ARRAY, got %s",
 						args[0].Type())
 				}
 
@@ -69,7 +69,7 @@ var BuiltIns = []struct {
 						len(args))
 				}
 				if args[0].Type() != ARRAY_OBJ {
-					return newError("argument to `last` must be ARRAY, got %s",
+					return newError("argument to `last` must be an ARRAY, got %s",
 						args[0].Type())
 				}
 
@@ -92,7 +92,7 @@ var BuiltIns = []struct {
 						len(args))
 				}
 				if args[0].Type() != ARRAY_OBJ {
-					return newError("argument to `rest` must be ARRAY, got %s",
+					return newError("argument to `rest` must be an ARRAY, got %s",
 						args[0].Type())
 				}
 
@@ -117,7 +117,7 @@ var BuiltIns = []struct {
 						len(args))
 				}
 				if args[0].Type() != ARRAY_OBJ {
-					return newError("argument to `push` must be ARRAY, got %s",
+					return newError("argument to `push` must be an ARRAY, got %s",
 						args[0].Type())
 				}
 
