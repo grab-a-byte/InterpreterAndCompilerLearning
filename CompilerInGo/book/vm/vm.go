@@ -28,7 +28,8 @@ type VM struct {
 
 func New(bytecode *compiler.Bytecode) *VM {
 	mainFn := &object.CompiledFunction{Instructions: bytecode.Instructions}
-	mainFrame := NewFrame(mainFn, 0)
+	mainClosure := &object.Closure{Fn: mainFn}
+	mainFrame := NewFrame(mainClosure, 0)
 	frames := make([]*Frame, MaxFrames)
 	frames[0] = mainFrame
 
@@ -121,18 +122,22 @@ func (vm *VM) Run() error {
 			if !isTruthy(condition) {
 				vm.currentFrame().instructionPointer = pos - 1
 			}
+
 		case code.OpAdd, code.OpSub, code.OpDiv, code.OpMul:
 			vm.executeBinaryOperation(op)
+
 		case code.OpEqual, code.OpNotEqual, code.OpGreaterThan:
 			err := vm.executeComparrison(op)
 			if err != nil {
 				return err
 			}
+
 		case code.OpBang:
 			err := vm.executeBangOperator()
 			if err != nil {
 				return err
 			}
+
 		case code.OpMinus:
 			err := vm.executeMinusOperator()
 			if err != nil {
@@ -216,6 +221,15 @@ func (vm *VM) Run() error {
 			builtIn := object.BuiltIns[builtInIndex]
 			vm.push(builtIn.Builtin)
 
+		case code.OpClosure:
+			constIndex := code.ReadUint16(ins[ip+1:])
+			_ = code.ReadUint8(ins[ip+3:]) //TODO visit later
+			vm.currentFrame().instructionPointer += 3
+			err := vm.pushClosure(int(constIndex))
+			if err != nil {
+				return err
+			}
+
 		case code.OpPop:
 			vm.pop()
 		}
@@ -235,11 +249,22 @@ func isTruthy(obj object.Object) bool {
 	}
 }
 
+func (vm *VM) pushClosure(constIndex int) error {
+	constant := vm.constants[constIndex]
+	function, ok := constant.(*object.CompiledFunction)
+	if !ok {
+		return fmt.Errorf("not a function: %+v", constant)
+	}
+
+	closure := &object.Closure{Fn: function}
+	return vm.push(closure)
+}
+
 func (vm *VM) executeCall(numArgs int) error {
 	callee := vm.stack[vm.stackPointer-1-numArgs]
 	switch callee := callee.(type) {
-	case *object.CompiledFunction:
-		return vm.callFunction(callee, int(numArgs))
+	case *object.Closure:
+		return vm.callClosure(callee, int(numArgs))
 	case *object.Builtin:
 		return vm.callBuiltin(callee, numArgs)
 	default:
@@ -263,14 +288,14 @@ func (vm *VM) callBuiltin(builtin *object.Builtin, numArgs int) error {
 	return nil
 }
 
-func (vm *VM) callFunction(fn *object.CompiledFunction, numArgs int) error {
-	if numArgs != fn.NumParameters {
-		return fmt.Errorf("wrong number of arguments: expected %d, got %d", fn.NumParameters, numArgs)
+func (vm *VM) callClosure(closure *object.Closure, numArgs int) error {
+	if numArgs != closure.Fn.NumParameters {
+		return fmt.Errorf("wrong number of arguments: expected %d, got %d", closure.Fn.NumParameters, numArgs)
 	}
 
-	frame := NewFrame(fn, vm.stackPointer-numArgs)
+	frame := NewFrame(closure, vm.stackPointer-numArgs)
 	vm.pushFrame(frame)
-	vm.stackPointer = frame.basePointer + fn.NumLocals
+	vm.stackPointer = frame.basePointer + closure.Fn.NumLocals
 
 	return nil
 }

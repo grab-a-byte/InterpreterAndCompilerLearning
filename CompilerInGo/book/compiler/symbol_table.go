@@ -6,6 +6,7 @@ const (
 	GlobalScope  SymbolScope = "GLOBAL"
 	LocalScope   SymbolScope = "LOCAL"
 	BuiltInScope SymbolScope = "BUILTIN"
+	FreeScope    SymbolScope = "FREE"
 )
 
 type Symbol struct {
@@ -19,11 +20,14 @@ type SymbolTable struct {
 
 	store          map[string]Symbol
 	numDefinitions int
+
+	FreeSymbols []Symbol
 }
 
 func NewSymbolTable() *SymbolTable {
 	s := make(map[string]Symbol)
-	return &SymbolTable{store: s}
+	free := []Symbol{}
+	return &SymbolTable{store: s, FreeSymbols: free}
 }
 
 func (st *SymbolTable) Define(name string) Symbol {
@@ -44,12 +48,32 @@ func (st *SymbolTable) DefineBuiltIn(index int, name string) Symbol {
 	return symbol
 }
 
+func (st *SymbolTable) defineFree(original Symbol) Symbol {
+	st.FreeSymbols = append(st.FreeSymbols, original)
+	symbol := Symbol{
+		Name:  original.Name,
+		Index: len(st.FreeSymbols) - 1,
+		Scope: FreeScope,
+	}
+	st.store[original.Name] = symbol
+	return symbol
+}
+
 func (st *SymbolTable) Resolve(name string) (Symbol, bool) {
 	obj, ok := st.store[name]
 
 	if !ok && st.Outer != nil {
 		obj, ok := st.Outer.Resolve(name)
-		return obj, ok
+		if !ok {
+			return obj, ok
+		}
+
+		if obj.Scope == GlobalScope || obj.Scope == BuiltInScope {
+			return obj, ok
+		}
+
+		free := st.defineFree(obj)
+		return free, true
 	}
 
 	return obj, ok
