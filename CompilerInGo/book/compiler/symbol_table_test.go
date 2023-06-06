@@ -290,3 +290,37 @@ func TestUnresolveableFree(t *testing.T) {
 		}
 	}
 }
+
+func TestDefineAndResolveFunctionName(t *testing.T) {
+	global := NewSymbolTable()
+	global.DefineFunctionName("a")
+
+	expected := Symbol{Name: "a", Scope: FunctionScope, Index: 0}
+
+	result, ok := global.Resolve("a")
+	if !ok {
+		t.Errorf("unable to resolve function 'a' in global scope")
+	}
+
+	if result != expected {
+		t.Errorf("expected %s to be %+v, got %+v", expected.Name, expected, result)
+	}
+}
+
+func TestShadowingFucntionName(t *testing.T) {
+	global := NewSymbolTable()
+	global.DefineFunctionName("a")
+
+	global.Define("a")
+
+	expected := Symbol{Name: "a", Scope: GlobalScope, Index: 0}
+
+	result, ok := global.Resolve("a")
+	if !ok {
+		t.Errorf("unable to resolve 'a' in global scope of symbol table")
+	}
+
+	if result != expected {
+		t.Errorf("expected %s to be %+v, got %+v", expected.Name, expected, result)
+	}
+}

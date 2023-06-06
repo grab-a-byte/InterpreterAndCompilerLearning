@@ -586,6 +586,32 @@ func TestFunctionParameterParsing(t *testing.T) {
 	}
 }
 
+func TestFunctionLiteralWithName(t *testing.T) {
+	input := `let myFunction = fn(){};`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program body does not have enough statments, expected %d got %d", 1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.LetStatement)
+	if !ok {
+		t.Fatalf("program.Statmennts[0] should be a Let statement but is a %T", program.Statements[0])
+	}
+
+	function, ok := stmt.Value.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("statement value shoudl be function literal but is a %T", stmt.Value)
+	}
+
+	if function.Name != "myFunction" {
+		t.Fatalf("got wrong function name, expeted %q , got %q", "myFunction", function.Name)
+	}
+}
+
 func TestCallExpressionParsing(t *testing.T) {
 	input := "add(1, 2 * 3, 4 + 5);"
 

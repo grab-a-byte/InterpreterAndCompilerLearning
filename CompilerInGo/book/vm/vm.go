@@ -221,15 +221,31 @@ func (vm *VM) Run() error {
 			builtIn := object.BuiltIns[builtInIndex]
 			vm.push(builtIn.Builtin)
 
-		case code.OpClosure:
-			constIndex := code.ReadUint16(ins[ip+1:])
-			_ = code.ReadUint8(ins[ip+3:]) //TODO visit later
-			vm.currentFrame().instructionPointer += 3
-			err := vm.pushClosure(int(constIndex))
+		case code.OpGetFree:
+			freeIndex := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().instructionPointer += 1
+			currentClosure := vm.currentFrame().closure
+
+			err := vm.push(currentClosure.Free[freeIndex])
 			if err != nil {
 				return err
 			}
 
+		case code.OpClosure:
+			constIndex := code.ReadUint16(ins[ip+1:])
+			numFree := code.ReadUint8(ins[ip+3:]) //TODO visit later
+			vm.currentFrame().instructionPointer += 3
+			err := vm.pushClosure(int(constIndex), int(numFree))
+			if err != nil {
+				return err
+			}
+
+		case code.OpCurrentClosure:
+			closure := vm.currentFrame().closure
+			err := vm.push(closure)
+			if err != nil {
+				return err
+			}
 		case code.OpPop:
 			vm.pop()
 		}
@@ -249,14 +265,21 @@ func isTruthy(obj object.Object) bool {
 	}
 }
 
-func (vm *VM) pushClosure(constIndex int) error {
+func (vm *VM) pushClosure(constIndex, numFree int) error {
 	constant := vm.constants[constIndex]
 	function, ok := constant.(*object.CompiledFunction)
 	if !ok {
 		return fmt.Errorf("not a function: %+v", constant)
 	}
 
-	closure := &object.Closure{Fn: function}
+	free := make([]object.Object, numFree)
+	for i := 0; i < numFree; i++ {
+		free[i] = vm.stack[vm.stackPointer-numFree+i]
+	}
+
+	vm.stackPointer = vm.stackPointer - numFree
+
+	closure := &object.Closure{Fn: function, Free: free}
 	return vm.push(closure)
 }
 
@@ -268,7 +291,7 @@ func (vm *VM) executeCall(numArgs int) error {
 	case *object.Builtin:
 		return vm.callBuiltin(callee, numArgs)
 	default:
-		return fmt.Errorf("calling non-function and non-built-in")
+		return fmt.Errorf("calling non-closure and non-built-in")
 
 	}
 }

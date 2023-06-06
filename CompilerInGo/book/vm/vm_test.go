@@ -58,6 +58,19 @@ func runVmTests(t *testing.T, tests []vmTestCase) {
 			t.Fatalf("Error while compiling program: %s", err)
 		}
 
+		// for i, constant := range comp.Bytecode().Constants {
+		// 	fmt.Printf("CONSTANT %d %p (%T): \n", i, constant, constant)
+
+		// 	switch constant := constant.(type) {
+		// 	case *object.CompiledFunction:
+		// 		fmt.Printf("  Instructions:\n%s", constant.Instructions)
+		// 	case *object.Integer:
+		// 		fmt.Printf("  Value: %d\n", constant.Value)
+		// 	}
+
+		// 	fmt.Print("\n")
+		// }
+
 		vm := New(comp.Bytecode())
 		err = vm.Run()
 
@@ -540,6 +553,82 @@ func TestBuiltInFunctions(t *testing.T) {
 		{`last(1)`, object.Error{Message: "argument to `last` must be an ARRAY, got INTEGER"}},
 		{`push([], 1)`, []int{1}},
 		{`push(1, 1)`, "argument to `push` must be an ARRAY, got INTEGER"},
+	}
+
+	runVmTests(t, tests)
+}
+
+func TestClosures(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+			let closure = fn(a){
+				fn(){ a }
+			}
+			let newClosure = closure(99)
+			newClosure()
+			`,
+			expected: 99,
+		},
+		{
+			input: `
+			let newAdder = fn(a, b){
+				fn(c) { a + b + c}
+			}
+			let adder = newAdder(1, 2)
+			adder(3)
+			`,
+			expected: 6,
+		},
+		{
+			input: `
+			let newAdder = fn (a, b) {
+				let c = a + b
+				fn(d) {
+					c + d
+				}
+			}
+			let adder = newAdder(3, 4)
+			adder(5)
+			`,
+			expected: 12,
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
+func TestRecursiveFunctions(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+			let countDown = fn(x) {
+				if (x == 0) {
+					return 0
+				} else {
+					countDown(x - 1)
+				}
+			}
+			countDown(1)
+			`,
+			expected: 0,
+		},
+		{
+			input: `
+			let wrapper = fn(){
+				let countDown = fn(x){
+					if (x == 0) {
+						return 0
+					} else {
+						countDown(x - 1)
+					}
+				}
+				countDown(1)
+			}
+			wrapper()
+			`,
+			expected: 0,
+		},
 	}
 
 	runVmTests(t, tests)
