@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="GenerateAstKt" type="JetRunConfigurationType" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="tool.GenerateAstKt" />
+    <module name="CraftingInterpreters.main" />
+    <option name="PROGRAM_PARAMETERS" value="&quot;src/main/kotlin/expressions/&quot;" />
+    <shortenClasspath name="NONE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

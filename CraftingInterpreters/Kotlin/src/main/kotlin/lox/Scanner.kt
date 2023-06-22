@@ -1,3 +1,5 @@
+package lox
+
 class Scanner(private val input: String) {
 
     private val source = input.toCharArray()
@@ -6,6 +8,25 @@ class Scanner(private val input: String) {
     private var current: Int = 0
     private var line: Int = 1
 
+    private val keywords = hashMapOf(
+        "and" to TokenType.AND,
+        "class" to TokenType.CLASS,
+        "else" to TokenType.ELSE,
+        "false" to TokenType.FALSE,
+        "for" to TokenType.FOR,
+        "fun" to TokenType.FUN,
+        "if" to TokenType.IF,
+        "nil" to TokenType.NIL,
+        "or" to TokenType.OR,
+        "print" to TokenType.PRINT,
+        "return" to TokenType.RETURN,
+        "super" to TokenType.SUPER,
+        "this" to TokenType.THIS,
+        "true" to TokenType.TRUE,
+        "var" to TokenType.VAR,
+        "while" to TokenType.WHILE
+    )
+
     fun scanTokens() : List<Token> {
         while(!isAtEnd()) {
            start = current;
@@ -13,19 +34,6 @@ class Scanner(private val input: String) {
         }
         tokens.add(Token(TokenType.EOF, "", null, line))
         return tokens
-    }
-
-    private fun isAtEnd() : Boolean {
-        return current >= source.size
-    }
-
-    private fun addToken(type: TokenType) {
-        addToken(type, null)
-    }
-
-    private fun addToken(type: TokenType, literal: Any?){
-        val text = source.slice(start..current).joinToString()
-        tokens.add(Token(type, text, literal, line))
     }
 
     private fun scanToken(){
@@ -56,14 +64,16 @@ class Scanner(private val input: String) {
             '"' -> string()
             ' ', '\r', '\t', -> {}
             else -> {
-                if (isDigit(c)) number() else Lox.error(line, "Unexpected Character")
+                if (isDigit(c)) number()
+                else if (isAlpha(c)) identifier()
+                else Lox.error(line, "Unexpected Character")
             }
         }
     }
 
-    private fun isDigit(c: Char) : Boolean {
-        return ('0'..'9').contains(c)
-    }
+    private fun isDigit(c: Char) : Boolean = ('0'..'9').contains(c)
+    private fun isAlpha(c: Char): Boolean = (('a'..'z') + ('A'..'Z') + '_').contains(c)
+    private fun isAlphaNumeric(c: Char) = isAlpha(c) || isDigit(c)
 
     private fun number() {
         while (isDigit(peek())) advance()
@@ -76,6 +86,13 @@ class Scanner(private val input: String) {
         }
         val value = source.slice(start..current).joinToString()
         addToken(TokenType.NUMBER, value.toDouble())
+    }
+
+    private fun identifier() {
+        while (isAlphaNumeric(peek())) advance()
+        val text = source.slice(start..current).joinToString()
+        val type = keywords[text] ?: TokenType.IDENTIFIER
+        addToken(type)
     }
 
     private fun string() {
@@ -94,9 +111,16 @@ class Scanner(private val input: String) {
         addToken(TokenType.STRING, value)
     }
 
-    private fun peek() : Char {
-        return if (isAtEnd()) '\n' else source[current]
+    private fun isAtEnd() : Boolean = current >= source.size
+
+    private fun addToken(type: TokenType) = addToken(type, null)
+
+    private fun addToken(type: TokenType, literal: Any?){
+        val text = source.slice(start..current).joinToString()
+        tokens.add(Token(type, text, literal, line))
     }
+
+    private fun peek() : Char = if (isAtEnd()) '\n' else source[current]
 
     private fun peekNext() : Char {
         if (current + 1 > source.size) return '\n'
