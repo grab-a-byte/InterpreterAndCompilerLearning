@@ -1,5 +1,6 @@
 package tool
 
+import java.util.*
 import kotlin.io.path.Path
 import kotlin.system.exitProcess
 
@@ -29,7 +30,16 @@ private fun defineAst(
     builder.appendLine("import lox.Token")
     builder.appendLine()
     builder.appendLine("abstract class $baseName {")
+    builder.appendLine()
 
+    //Base type methods
+    builder.appendLine("    abstract fun <R> accept(visitor: Visitor<R>) : R")
+
+    //Define visitor interface
+    val visitor = defineVisitor(baseName, types)
+    builder.appendLine(visitor)
+
+    //Define each type
     types.forEach { type ->
         val className = type.split(":")[0].trim()
         val fields = type.split(":")[1].trim()
@@ -57,6 +67,23 @@ private fun defineType(baseName: String, className: String, fieldsList: String):
         else str.appendLine("        val $name: $type,")
     }
     str.appendLine(") : $baseName() {")
+    str.appendLine("            override fun <R> accept(visitor: Visitor<R>): R {")
+    str.appendLine("                return visitor.visit$className$baseName(this)")
+    str.appendLine("            }")
     str.append("    }")
     return str.toString()
+}
+
+private fun defineVisitor(baseName: String, types: List<String>): String {
+    val builder = StringBuilder()
+    builder.appendLine("    interface Visitor<R> {")
+
+    for (type in types) {
+        val typeName = type.split(":")[0]
+        builder.appendLine("        fun visit$typeName$baseName(${baseName.lowercase(Locale.getDefault())} : $typeName): R")
+    }
+
+    builder.appendLine("    }")
+
+    return builder.toString()
 }
