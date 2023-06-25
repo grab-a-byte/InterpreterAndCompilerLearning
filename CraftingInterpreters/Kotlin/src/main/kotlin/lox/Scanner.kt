@@ -84,13 +84,13 @@ class Scanner(private val input: String) {
             advance()
             while (isDigit(peek())) advance()
         }
-        val value = source.slice(start..current).joinToString()
+        val value = String(source.slice(start until current).toCharArray())
         addToken(TokenType.NUMBER, value.toDouble())
     }
 
     private fun identifier() {
         while (isAlphaNumeric(peek())) advance()
-        val text = source.slice(start..current).joinToString()
+        val text = String(source.slice(start until current).toCharArray())
         val type = keywords[text] ?: TokenType.IDENTIFIER
         addToken(type)
     }
@@ -116,7 +116,7 @@ class Scanner(private val input: String) {
     private fun addToken(type: TokenType) = addToken(type, null)
 
     private fun addToken(type: TokenType, literal: Any?){
-        val text = source.slice(start..current).joinToString()
+        val text = String(source.slice(start until current).toCharArray())
         tokens.add(Token(type, text, literal, line))
     }
 
@@ -135,7 +135,6 @@ class Scanner(private val input: String) {
     }
 
     private fun advance() : Char {
-        current += 1
-        return source[current]
+        return source[current++]
     }
 }

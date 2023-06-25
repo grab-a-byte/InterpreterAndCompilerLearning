@@ -1,6 +1,7 @@
 package lox
 
 import java.io.File
+import kotlin.math.exp
 import kotlin.system.exitProcess
 
 object Lox {
@@ -10,9 +11,12 @@ object Lox {
     private fun run(source: String){
         val scanner = Scanner(source)
         val tokens = scanner.scanTokens()
-        for (token in tokens) {
-            println(token)
-        }
+        val parser = Parser(tokens)
+        val expr = parser.parse()
+
+        if(hadError || expr == null) return
+
+        println(AstPrinter().print(expr))
     }
 
     fun runFile(file: String){
@@ -32,6 +36,14 @@ object Lox {
 
     fun error(line: Int, message: String) {
         report(line, "", message)
+    }
+
+    fun error(tok: Token, message: String) {
+        if (tok.type == TokenType.EOF){
+            report(tok.line, " at end ", message)
+        } else {
+            report(tok.line, " at '${tok.lexeme}' ", message)
+        }
     }
 
     private fun report(line: Int, where: String, message: String){
