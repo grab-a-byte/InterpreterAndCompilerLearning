@@ -1,8 +1,9 @@
 package lox
 
 import expressions.Expr
+import expressions.Stmt
 
-class Interpreter : Expr.Visitor<Any?> {
+class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
 
     fun interpret(expression: Expr) {
         try {
@@ -11,6 +12,21 @@ class Interpreter : Expr.Visitor<Any?> {
         } catch (e: RuntimeError) {
             Lox.runtimeError(e)
         }
+    }
+
+    fun interpret(stmts: List<Stmt?>) {
+        try {
+            for (stmt in stmts) {
+                if (stmt == null) continue
+                execute(stmt)
+            }
+        } catch (e: RuntimeError) {
+            Lox.runtimeError(e)
+        }
+    }
+
+    private fun execute(stmt: Stmt) {
+        stmt.accept(this)
     }
 
     override fun visitBinaryExpr(expr: Expr.Binary): Any? {
@@ -117,5 +133,16 @@ class Interpreter : Expr.Visitor<Any?> {
 
             else -> obj.toString()
         }
+    }
+
+    override fun visitExpressionStmt(stmt: Stmt.Expression): Any? {
+        evaluate(stmt.expression)
+        return null
+    }
+
+    override fun visitPrintStmt(stmt: Stmt.Print): Any? {
+        val value = this.evaluate(stmt.expression)
+        println(value)
+        return null
     }
 }

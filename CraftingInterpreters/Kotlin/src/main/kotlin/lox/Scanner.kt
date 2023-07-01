@@ -106,8 +106,8 @@ class Scanner(private val input: String) {
             return
         }
 
+        val value = String(source.slice(start+1 until current).toCharArray())
         advance() //Closing " char
-        val value = source.slice(start+1 until current).joinToString()
         addToken(TokenType.STRING, value)
     }
 

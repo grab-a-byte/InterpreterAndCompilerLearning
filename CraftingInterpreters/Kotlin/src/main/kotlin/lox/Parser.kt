@@ -1,16 +1,17 @@
 package lox
 
 import expressions.Expr
+import expressions.Stmt
 import java.lang.RuntimeException
 
 class Parser(private val tokens: List<Token>) {
 
-    fun parse() : Expr? {
-        try {
-            return expression()
-        } catch (pe: ParseError) {
-            return null
+    fun parse() : List<Stmt?>? {
+        val statements = mutableListOf<Stmt?>()
+        while (!isAtEnd()) {
+            statements.add(statement())
         }
+        return statements
     }
 
     private var current: Int = 0
@@ -19,6 +20,25 @@ class Parser(private val tokens: List<Token>) {
         return equality()
     }
 
+    private fun statement(): Stmt? {
+        return if (match(TokenType.PRINT)) printStatement()
+        else expressionStatement()
+    }
+
+    //Statement parsers
+    private fun printStatement() : Stmt {
+        val expr = expression()
+        consume(TokenType.SEMICOLON, "Expect ';' after value.")
+        return Stmt.Print(expr)
+    }
+
+    private fun expressionStatement(): Stmt {
+        val expr = expression()
+        consume(TokenType.SEMICOLON, "Expect ';' after expression.")
+        return Stmt.Expression(expr)
+    }
+
+    //Expression parsers
     private fun equality() = parseUntil(::comparison, TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)
     private fun comparison() = parseUntil(::term, TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)
     private fun term() = parseUntil(::factor, TokenType.MINUS, TokenType.PLUS)

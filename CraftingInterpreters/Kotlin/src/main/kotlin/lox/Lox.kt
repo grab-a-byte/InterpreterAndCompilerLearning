@@ -14,12 +14,11 @@ object Lox {
         val scanner = Scanner(source)
         val tokens = scanner.scanTokens()
         val parser = Parser(tokens)
-        val expr = parser.parse()
+        val stmts = parser.parse()
 
-        if(hadError || expr == null) return
+        if(hadError || stmts == null) return
 
-        val result = interpreter.interpret(expr)
-        //println(AstPrinter().print(expr))
+        interpreter.interpret(stmts)
     }
 
     fun runFile(file: String){
