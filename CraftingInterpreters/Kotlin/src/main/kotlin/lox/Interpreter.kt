@@ -5,6 +5,8 @@ import expressions.Stmt
 
 class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
 
+    private var environment = Environment()
+
     fun interpret(expression: Expr) {
         try {
             val value : Any? = evaluate(expression)
@@ -83,6 +85,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
 
     override fun visitGroupingExpr(expr: Expr.Grouping): Any? = evaluate(expr.expression)
     override fun visitLiteralExpr(expr: Expr.Literal): Any? = expr.value
+    override fun visitVariableExpr(expr: Expr.Variable): Any = environment.get(expr.name)
 
     override fun visitUnaryExpr(expr: Expr.Unary): Any? {
         val right = evaluate(expr.right)
@@ -137,6 +140,12 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
 
     override fun visitExpressionStmt(stmt: Stmt.Expression): Any? {
         evaluate(stmt.expression)
+        return null
+    }
+
+    override fun visitVarStmt(stmt: Stmt.Var): Any? {
+        val value = if (stmt.initializer == null) null else evaluate(stmt.initializer)
+        environment.define(stmt.name.lexeme, value)
         return null
     }
 

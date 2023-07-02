@@ -9,7 +9,7 @@ class Parser(private val tokens: List<Token>) {
     fun parse() : List<Stmt?>? {
         val statements = mutableListOf<Stmt?>()
         while (!isAtEnd()) {
-            statements.add(statement())
+            statements.add(declaration())
         }
         return statements
     }
@@ -18,6 +18,23 @@ class Parser(private val tokens: List<Token>) {
 
     private fun expression(): Expr {
         return equality()
+    }
+
+    private fun declaration(): Stmt? {
+        return try {
+            if (match(TokenType.VAR)) varDeclaration()
+            else statement()
+        } catch (e: ParseError) {
+            synchronize()
+            null
+        }
+    }
+
+    private fun varDeclaration() : Stmt? {
+        val name = consume(TokenType.IDENTIFIER, "Expect variable name")
+        val initializer = if (match(TokenType.EQUAL)) expression() else null
+        consume(TokenType.SEMICOLON, "Expect ';' after variable declaration")
+        return Stmt.Var(name, initializer)
     }
 
     private fun statement(): Stmt? {
@@ -48,6 +65,7 @@ class Parser(private val tokens: List<Token>) {
         if (match(TokenType.FALSE)) return Expr.Literal(false)
         if (match(TokenType.TRUE)) return Expr.Literal(true)
         if (match(TokenType.NUMBER, TokenType.STRING)) return Expr.Literal(previous().literal)
+        if (match(TokenType.IDENTIFIER)) return Expr.Variable(previous())
         if(match(TokenType.LEFT_PAREN)) {
             val expr = expression()
             consume(TokenType.RIGHT_PAREN, "Expect ')' after expressions.")
@@ -80,8 +98,16 @@ class Parser(private val tokens: List<Token>) {
         }
     }
 
+    private fun check(vararg types: TokenType): Boolean {
+        return if (isAtEnd()) {
+            false
+        } else {
+            types.contains(peek().type)
+        }
+    }
+
     private fun consume(type : TokenType, message: String): Token{
-        if (match(type)) return advance()
+        if (check(type)) return advance()
         throw error(peek(), message)
     }
 

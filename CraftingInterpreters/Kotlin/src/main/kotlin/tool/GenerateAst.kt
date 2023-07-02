@@ -15,12 +15,14 @@ fun main(args: Array<String>) {
         "Binary: Expr left, Token operator, Expr right",
         "Grouping: Expr expression",
         "Literal: Any? value",
+        "Variable: Token name",
         "Unary: Token operator, Expr right"
     ))
 
     defineAst(outputDir, "Stmt", listOf(
         "Expression: Expr expression",
-        "Print: Expr expression"
+        "Var: Token name, Expr? initializer",
+        "Print: Expr expression",
     ))
 }
 
