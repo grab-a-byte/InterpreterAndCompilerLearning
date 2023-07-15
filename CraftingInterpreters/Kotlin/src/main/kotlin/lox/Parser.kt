@@ -17,7 +17,7 @@ class Parser(private val tokens: List<Token>) {
     private var current: Int = 0
 
     private fun expression(): Expr {
-        return equality()
+        return assignment()
     }
 
     private fun declaration(): Stmt? {
@@ -37,8 +37,9 @@ class Parser(private val tokens: List<Token>) {
         return Stmt.Var(name, initializer)
     }
 
-    private fun statement(): Stmt? {
+    private fun statement(): Stmt {
         return if (match(TokenType.PRINT)) printStatement()
+        else if (match(TokenType.LEFT_BRACE)) Stmt.Block(blockStatement())
         else expressionStatement()
     }
 
@@ -55,7 +56,34 @@ class Parser(private val tokens: List<Token>) {
         return Stmt.Expression(expr)
     }
 
+    private fun blockStatement() : List<Stmt?> {
+        val statements: MutableList<Stmt?> = mutableListOf()
+
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration())
+        }
+
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after block")
+        return statements.toList()
+    }
+
     //Expression parsers
+    private fun assignment() : Expr {
+        val expr = equality()
+
+        if(match(TokenType.EQUAL)) {
+            val equals = previous()
+            val value = assignment()
+            if (expr is Expr.Variable) {
+                val name = expr.name
+                return Expr.Assign(name, value)
+            }
+
+            error(equals, "Invalid assingment target")
+        }
+
+        return expr
+    }
     private fun equality() = parseUntil(::comparison, TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)
     private fun comparison() = parseUntil(::term, TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)
     private fun term() = parseUntil(::factor, TokenType.MINUS, TokenType.PLUS)
@@ -74,7 +102,6 @@ class Parser(private val tokens: List<Token>) {
 
         throw error(peek(), "expected expression");
     }
-
 
     private fun parseUntil(func: () -> Expr, vararg types: TokenType)  : Expr {
         var expr = func()

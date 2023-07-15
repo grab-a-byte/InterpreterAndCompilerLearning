@@ -6,6 +6,7 @@ abstract class Expr {
 
     abstract fun <R> accept(visitor: Visitor<R>) : R
     interface Visitor<R> {
+        fun visitAssignExpr(expr : Assign): R
         fun visitBinaryExpr(expr : Binary): R
         fun visitGroupingExpr(expr : Grouping): R
         fun visitLiteralExpr(expr : Literal): R
@@ -13,6 +14,13 @@ abstract class Expr {
         fun visitUnaryExpr(expr : Unary): R
     }
 
+    class Assign (
+        val name: Token,
+        val value: Expr) : Expr() {
+            override fun <R> accept(visitor: Visitor<R>): R {
+                return visitor.visitAssignExpr(this)
+            }
+    }
     class Binary (
         val left: Expr,
         val operator: Token,

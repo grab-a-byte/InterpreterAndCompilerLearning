@@ -1,5 +1,5 @@
 import expressions.Expr
-import lox.AstPrinter
+//import lox.AstPrinter
 import lox.Lox
 import lox.Token
 import lox.TokenType

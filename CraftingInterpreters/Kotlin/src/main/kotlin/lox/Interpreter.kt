@@ -7,15 +7,6 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
 
     private var environment = Environment()
 
-    fun interpret(expression: Expr) {
-        try {
-            val value : Any? = evaluate(expression)
-            println(stringify(value))
-        } catch (e: RuntimeError) {
-            Lox.runtimeError(e)
-        }
-    }
-
     fun interpret(stmts: List<Stmt?>) {
         try {
             for (stmt in stmts) {
@@ -29,6 +20,12 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
 
     private fun execute(stmt: Stmt) {
         stmt.accept(this)
+    }
+
+    override fun visitAssignExpr(expr: Expr.Assign): Any? {
+        val value = evaluate(expr.value)
+        environment.assign(expr.name, value)
+        return value
     }
 
     override fun visitBinaryExpr(expr: Expr.Binary): Any? {
@@ -136,6 +133,20 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
 
             else -> obj.toString()
         }
+    }
+
+    override fun visitBlockStmt(stmt: Stmt.Block): Any? {
+        var previous = this.environment
+        try {
+            this.environment = Environment(previous)
+            for (stmt in stmt.statements) {
+                if (stmt == null) throw RuntimeError(Token(TokenType.LEFT_BRACE, "{", "{", -1) ,"Null statement found in block")
+                execute(stmt)
+            }
+        } finally {
+            this.environment = previous
+        }
+        return null
     }
 
     override fun visitExpressionStmt(stmt: Stmt.Expression): Any? {
