@@ -82,6 +82,18 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
 
     override fun visitGroupingExpr(expr: Expr.Grouping): Any? = evaluate(expr.expression)
     override fun visitLiteralExpr(expr: Expr.Literal): Any? = expr.value
+    override fun visitLogicalExpr(expr: Expr.Logical): Any? {
+        val left = evaluate(expr.left)
+
+        if (expr.operator.type == TokenType.OR) {
+            if (isTruthy(left)) return left
+        } else if (!isTruthy(left)) {
+            return left
+        }
+
+        return evaluate(expr.right)
+    }
+
     override fun visitVariableExpr(expr: Expr.Variable): Any = environment.get(expr.name)
 
     override fun visitUnaryExpr(expr: Expr.Unary): Any? {
@@ -136,7 +148,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
     }
 
     override fun visitBlockStmt(stmt: Stmt.Block): Any? {
-        var previous = this.environment
+        val previous = this.environment
         try {
             this.environment = Environment(previous)
             for (stmt in stmt.statements) {
@@ -154,6 +166,18 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
         return null
     }
 
+    override fun visitIfStmt(stmt: Stmt.If): Any? {
+        val condition = evaluate(stmt.condition)
+
+        if (isTruthy(condition)) {
+            execute(stmt.branch)
+        } else if(stmt.elseBranch != null) {
+            execute(stmt.elseBranch)
+        }
+
+        return null
+    }
+
     override fun visitVarStmt(stmt: Stmt.Var): Any? {
         val value = if (stmt.initializer == null) null else evaluate(stmt.initializer)
         environment.define(stmt.name.lexeme, value)
@@ -163,6 +187,14 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
     override fun visitPrintStmt(stmt: Stmt.Print): Any? {
         val value = this.evaluate(stmt.expression)
         println(value)
+        return null
+    }
+
+    override fun visitWhileStmt(stmt: Stmt.While): Any? {
+        while (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.body)
+        }
+
         return null
     }
 }

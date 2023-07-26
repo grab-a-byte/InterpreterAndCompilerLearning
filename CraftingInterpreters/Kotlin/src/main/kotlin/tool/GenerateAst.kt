@@ -16,6 +16,7 @@ fun main(args: Array<String>) {
         "Binary: Expr left, Token operator, Expr right",
         "Grouping: Expr expression",
         "Literal: Any? value",
+        "Logical: Expr left, Token operator, Expr right",
         "Variable: Token name",
         "Unary: Token operator, Expr right"
     ))
@@ -23,8 +24,10 @@ fun main(args: Array<String>) {
     defineAst(outputDir, "Stmt", listOf(
         "Block: List<Stmt?> statements",
         "Expression: Expr expression",
+        "If: Expr condition, Stmt branch, Stmt? elseBranch",
         "Var: Token name, Expr? initializer",
         "Print: Expr expression",
+        "While: Expr condition, Stmt body"
     ))
 }
 

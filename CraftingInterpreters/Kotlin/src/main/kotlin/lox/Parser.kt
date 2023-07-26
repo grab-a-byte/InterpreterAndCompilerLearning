@@ -38,12 +38,24 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun statement(): Stmt {
-        return if (match(TokenType.PRINT)) printStatement()
+        return if (match(TokenType.IF)) ifStatement()
+        else if (match(TokenType.PRINT)) printStatement()
         else if (match(TokenType.LEFT_BRACE)) Stmt.Block(blockStatement())
+        else if (match(TokenType.WHILE)) whileStmt()
         else expressionStatement()
     }
 
     //Statement parsers
+    private fun ifStatement() : Stmt {
+        consume(TokenType.LEFT_PAREN, "Expected Left Paren after 'If'")
+        val condition = expression()
+        consume(TokenType.RIGHT_PAREN, "expected Right paren after if condition")
+        val ifBranch = statement()
+        val elseBranch = if (match(TokenType.ELSE)) statement() else null
+
+        return Stmt.If(condition, ifBranch, elseBranch)
+    }
+
     private fun printStatement() : Stmt {
         val expr = expression()
         consume(TokenType.SEMICOLON, "Expect ';' after value.")
@@ -67,9 +79,18 @@ class Parser(private val tokens: List<Token>) {
         return statements.toList()
     }
 
+    private fun whileStmt() : Stmt {
+        consume(TokenType.LEFT_PAREN, "Expected Left Paren after 'While'")
+        val condition = expression()
+        consume(TokenType.RIGHT_PAREN, "expected Right paren after while condition")
+        val body = statement()
+
+        return Stmt.While(condition, body)
+    }
+
     //Expression parsers
     private fun assignment() : Expr {
-        val expr = equality()
+        val expr = or()
 
         if(match(TokenType.EQUAL)) {
             val equals = previous()
@@ -84,6 +105,32 @@ class Parser(private val tokens: List<Token>) {
 
         return expr
     }
+
+    private fun or() : Expr {
+        val left = and()
+
+        if (match(TokenType.OR)) {
+            val operator = previous()
+            val right = and()
+
+            return Expr.Logical(left, operator, right)
+        }
+
+        return left
+    }
+
+    private fun and() : Expr {
+        val left = equality()
+        if (match(TokenType.AND)) {
+            val operator = previous()
+            val right = equality()
+
+            return Expr.Logical(left, operator, right)
+        }
+
+        return left
+    }
+
     private fun equality() = parseUntil(::comparison, TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)
     private fun comparison() = parseUntil(::term, TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)
     private fun term() = parseUntil(::factor, TokenType.MINUS, TokenType.PLUS)
@@ -91,10 +138,11 @@ class Parser(private val tokens: List<Token>) {
     private fun unary() = parseUntil(::primary, TokenType.BANG, TokenType.MINUS)
     private fun primary() : Expr {
         if (match(TokenType.FALSE)) return Expr.Literal(false)
-        if (match(TokenType.TRUE)) return Expr.Literal(true)
-        if (match(TokenType.NUMBER, TokenType.STRING)) return Expr.Literal(previous().literal)
-        if (match(TokenType.IDENTIFIER)) return Expr.Variable(previous())
-        if(match(TokenType.LEFT_PAREN)) {
+        else if (match(TokenType.TRUE)) return Expr.Literal(true)
+        else if (match(TokenType.NIL)) return Expr.Literal(null)
+        else if (match(TokenType.NUMBER, TokenType.STRING)) return Expr.Literal(previous().literal)
+        else if (match(TokenType.IDENTIFIER)) return Expr.Variable(previous())
+        else if(match(TokenType.LEFT_PAREN)) {
             val expr = expression()
             consume(TokenType.RIGHT_PAREN, "Expect ')' after expressions.")
             return Expr.Grouping(expr)
