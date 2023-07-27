@@ -8,10 +8,12 @@ class Environment(private val enclosing: Environment? = null) {
         values[name] = value
     }
 
-    fun get(name: Token) {
+    fun get(name: Token): Any? {
         val x = values[name.lexeme]
         if (enclosing != null && x == null) {
             return enclosing.get(name)
+        } else if (x != null) {
+            return x
         }
         throw RuntimeError(name, "undefined variable")
     }

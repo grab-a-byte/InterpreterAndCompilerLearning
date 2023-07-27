@@ -39,6 +39,7 @@ class Parser(private val tokens: List<Token>) {
 
     private fun statement(): Stmt {
         return if (match(TokenType.IF)) ifStatement()
+        else if (match(TokenType.FOR)) forStmt()
         else if (match(TokenType.PRINT)) printStatement()
         else if (match(TokenType.LEFT_BRACE)) Stmt.Block(blockStatement())
         else if (match(TokenType.WHILE)) whileStmt()
@@ -80,12 +81,41 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun whileStmt() : Stmt {
-        consume(TokenType.LEFT_PAREN, "Expected Left Paren after 'While'")
+        consume(TokenType.LEFT_PAREN, "Expected '(' after 'While'")
         val condition = expression()
-        consume(TokenType.RIGHT_PAREN, "expected Right paren after while condition")
+        consume(TokenType.RIGHT_PAREN, "expected ')' after while condition")
         val body = statement()
 
         return Stmt.While(condition, body)
+    }
+
+    private fun forStmt() : Stmt {
+        consume(TokenType.LEFT_PAREN, "expect '(' after 'for'")
+
+        val initializer: Stmt? = if(match(TokenType.SEMICOLON)) null
+            else if(match(TokenType.VAR)) varDeclaration()
+            else expressionStatement()
+
+        val condition = if (!check(TokenType.SEMICOLON)) expression() else null
+        consume(TokenType.SEMICOLON, "expected ';' after loop condition")
+        val increment = if (!check(TokenType.RIGHT_PAREN)) expression() else null
+
+        consume(TokenType.RIGHT_PAREN, "expected ')' after 'if' conditions")
+
+        var body = statement()
+        if(increment != null) {
+            body = Stmt.Block(listOf(body, Stmt.Expression(increment)))
+        }
+
+        if(condition != null) {
+            body = Stmt.While(condition, body)
+        }
+
+        if (initializer != null) {
+            body = Stmt.Block(listOf(initializer, body))
+        }
+
+        return body
     }
 
     //Expression parsers
@@ -100,7 +130,7 @@ class Parser(private val tokens: List<Token>) {
                 return Expr.Assign(name, value)
             }
 
-            error(equals, "Invalid assingment target")
+            error(equals, "Invalid assignment target")
         }
 
         return expr
@@ -148,7 +178,7 @@ class Parser(private val tokens: List<Token>) {
             return Expr.Grouping(expr)
         }
 
-        throw error(peek(), "expected expression");
+        throw error(peek(), "expected expression")
     }
 
     private fun parseUntil(func: () -> Expr, vararg types: TokenType)  : Expr {
@@ -210,5 +240,5 @@ class Parser(private val tokens: List<Token>) {
     private fun previous() = tokens[current -1]
     private fun peek() = tokens[current]
 
-    private class ParseError : RuntimeException() {}
+    private class ParseError : RuntimeException()
 }

@@ -94,7 +94,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
         return evaluate(expr.right)
     }
 
-    override fun visitVariableExpr(expr: Expr.Variable): Any = environment.get(expr.name)
+    override fun visitVariableExpr(expr: Expr.Variable): Any? = environment.get(expr.name)
 
     override fun visitUnaryExpr(expr: Expr.Unary): Any? {
         val right = evaluate(expr.right)
@@ -111,7 +111,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
     private fun isTruthy(obj : Any?) : Boolean {
         return when(obj) {
             null -> false
-            is Boolean -> !obj
+            is Boolean -> obj
             else -> true
         }
     }
