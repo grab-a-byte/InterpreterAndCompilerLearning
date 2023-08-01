@@ -4,8 +4,17 @@ import expressions.Expr
 import expressions.Stmt
 
 class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
+    
+    val globals = Environment()
+    private var environment = globals
 
-    private var environment = Environment()
+    init {
+        globals.define("clock", object: LoxCallable {
+            override fun arity(): Int = 0
+            override fun call(interpreter: Interpreter, args: List<Any?>) : Any =  System.currentTimeMillis()
+            override fun toString(): String = "<native fun>"
+        })
+    }
 
     fun interpret(stmts: List<Stmt?>) {
         try {
@@ -73,6 +82,23 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
             }
             else -> null
         }
+    }
+
+    override fun visitCallExpr(expr: Expr.Call): Any? {
+        val callee = evaluate(expr.callee)
+        val args: List<Any?> = expr.params.map { evaluate(it) }
+
+        if(callee !is LoxCallable) {
+            throw RuntimeError(expr.paren, "Can only call functions and classes")
+        }
+
+        val function = callee
+
+        if(args.size != function.arity()) {
+            throw RuntimeError(expr.paren, "Expected ${function.arity()} argument but got ${args.size}")
+        }
+
+        return function.call(this, args)
     }
 
     private fun isEqual(left: Any?, right: Any?): Boolean {
@@ -147,11 +173,11 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
         }
     }
 
-    override fun visitBlockStmt(stmt: Stmt.Block): Any? {
+    fun executeBlock(stmts: List<Stmt?>, env: Environment) : Any? {
         val previous = this.environment
         try {
-            this.environment = Environment(previous)
-            for (stmt in stmt.statements) {
+            this.environment = env
+            for (stmt in stmts) {
                 if (stmt == null) throw RuntimeError(Token(TokenType.LEFT_BRACE, "{", "{", -1) ,"Null statement found in block")
                 execute(stmt)
             }
@@ -161,8 +187,16 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
         return null
     }
 
+    override fun visitBlockStmt(stmt: Stmt.Block): Any? = executeBlock(stmt.statements, Environment(environment))
+
     override fun visitExpressionStmt(stmt: Stmt.Expression): Any? {
         evaluate(stmt.expression)
+        return null
+    }
+
+    override fun visitFunctionStmt(stmt: Stmt.Function): Any? {
+        val function = LoxFunction(stmt)
+        environment.define(stmt.name.lexeme, function)
         return null
     }
 

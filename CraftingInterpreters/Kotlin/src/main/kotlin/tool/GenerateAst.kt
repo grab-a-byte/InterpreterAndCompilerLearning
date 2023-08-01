@@ -14,6 +14,7 @@ fun main(args: Array<String>) {
     defineAst(outputDir, "Expr", listOf(
         "Assign: Token name, Expr value",
         "Binary: Expr left, Token operator, Expr right",
+        "Call: Expr callee, Token paren, List<Expr> params",
         "Grouping: Expr expression",
         "Literal: Any? value",
         "Logical: Expr left, Token operator, Expr right",
@@ -24,6 +25,7 @@ fun main(args: Array<String>) {
     defineAst(outputDir, "Stmt", listOf(
         "Block: List<Stmt?> statements",
         "Expression: Expr expression",
+        "Function: Token name, List<Token> args, List<Stmt?> body",
         "If: Expr condition, Stmt branch, Stmt? elseBranch",
         "Var: Token name, Expr? initializer",
         "Print: Expr expression",

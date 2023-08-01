@@ -43,10 +43,34 @@ class Parser(private val tokens: List<Token>) {
         else if (match(TokenType.PRINT)) printStatement()
         else if (match(TokenType.LEFT_BRACE)) Stmt.Block(blockStatement())
         else if (match(TokenType.WHILE)) whileStmt()
+        else if(match(TokenType.FUN)) functionStatement("function")
         else expressionStatement()
     }
 
     //Statement parsers
+
+    private fun functionStatement(kind: String) : Stmt {
+        val name = consume(TokenType.IDENTIFIER, "expected $kind name.")
+        consume(TokenType.LEFT_PAREN, "expected '(' after $kind name.")
+
+        val args = mutableListOf<Token>()
+        if(!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if(args.size >= 255) {
+                    error(peek(), "Function call cannot have more than 255 arguments")
+                }
+                args.add(consume(TokenType.IDENTIFIER, "expected identifier name for argument"))
+            } while(match(TokenType.COMMA))
+        }
+
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after arguments")
+        consume(TokenType.LEFT_BRACE, "Expected '{' after arguments")
+
+        val body = blockStatement()
+
+        return Stmt.Function(name, args, body)
+    }
+
     private fun ifStatement() : Stmt {
         consume(TokenType.LEFT_PAREN, "Expected Left Paren after 'If'")
         val condition = expression()
@@ -119,6 +143,34 @@ class Parser(private val tokens: List<Token>) {
     }
 
     //Expression parsers
+    private fun call() : Expr {
+        var expr = primary()
+        while(true) {
+            if (match(TokenType.LEFT_PAREN)) {
+                expr = finishCall(expr)
+            } else {
+                break;
+            }
+        }
+
+        return expr
+    }
+
+    private fun finishCall(inner : Expr) : Expr {
+        val args = mutableListOf<Expr>()
+
+        if(!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if(args.size >= 255) {
+                    error(peek(), "Function call cannot have more than 255 arguments")
+                }
+                args.add(expression())
+            } while(match(TokenType.COMMA))
+        }
+        val paren = consume(TokenType.RIGHT_PAREN, "Expected ')' after arguments")
+        return Expr.Call(inner, paren, args)
+    }
+
     private fun assignment() : Expr {
         val expr = or()
 
