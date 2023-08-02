@@ -4,7 +4,7 @@ import expressions.Expr
 import expressions.Stmt
 
 class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
-    
+
     val globals = Environment()
     private var environment = globals
 

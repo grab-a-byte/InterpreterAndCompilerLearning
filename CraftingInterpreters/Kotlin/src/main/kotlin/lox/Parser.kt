@@ -217,7 +217,7 @@ class Parser(private val tokens: List<Token>) {
     private fun comparison() = parseUntil(::term, TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)
     private fun term() = parseUntil(::factor, TokenType.MINUS, TokenType.PLUS)
     private fun factor() = parseUntil(::unary, TokenType.SLASH, TokenType.STAR)
-    private fun unary() = parseUntil(::primary, TokenType.BANG, TokenType.MINUS)
+    private fun unary() = parseUntil(::call, TokenType.BANG, TokenType.MINUS)
     private fun primary() : Expr {
         if (match(TokenType.FALSE)) return Expr.Literal(false)
         else if (match(TokenType.TRUE)) return Expr.Literal(true)
