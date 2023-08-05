@@ -18,5 +18,12 @@ Book by Robert Nystrom. Amazon Link https://www.amazon.co.uk/Crafting-Interprete
 ### Languages Implemented
 - Kotlin - In Progress
 
+### Languages to try and implement in
+ - ???
+
 ### Part 2
+### Languages Implemented
  - Zig - TBC
+
+### Languages to try and implement in
+ - ???
