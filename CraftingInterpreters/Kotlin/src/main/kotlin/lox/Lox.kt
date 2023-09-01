@@ -18,6 +18,11 @@ object Lox {
 
         if(hadError || stmts == null) return
 
+        val resolver = Resolver(interpreter)
+        resolver.resolve(stmts)
+
+        if (hadError) return
+
         interpreter.interpret(stmts)
     }
 

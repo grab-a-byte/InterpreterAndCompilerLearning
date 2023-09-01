@@ -43,13 +43,32 @@ class Parser(private val tokens: List<Token>) {
         else if (match(TokenType.PRINT)) printStatement()
         else if (match(TokenType.LEFT_BRACE)) Stmt.Block(blockStatement())
         else if (match(TokenType.WHILE)) whileStmt()
-        else if(match(TokenType.FUN)) functionStatement("function")
+        else if (match(TokenType.FUN)) functionStatement("function")
+        else if (match(TokenType.CLASS)) classDeclaration()
+        else if (match(TokenType.RETURN)) returnStatement()
         else expressionStatement()
     }
 
     //Statement parsers
+    private fun classDeclaration() : Stmt {
+        val name = consume(TokenType.IDENTIFIER, "expected class name")
+        consume(TokenType.LEFT_BRACE, "expect left brace after class name")
+        val methods : MutableList<Stmt.Function> = mutableListOf()
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()){
+            methods.add(functionStatement("method"))
+        }
+        consume(TokenType.RIGHT_BRACE, "expect right brace at end of class")
+        return Stmt.Class(name, methods.toList())
+    }
 
-    private fun functionStatement(kind: String) : Stmt {
+    private fun returnStatement() : Stmt {
+        val keyword = previous()
+        val value = if(!check(TokenType.SEMICOLON)) expression() else null
+        consume(TokenType.SEMICOLON, "expect ';' after return")
+        return Stmt.Return(keyword, value)
+    }
+
+    private fun functionStatement(kind: String) : Stmt.Function {
         val name = consume(TokenType.IDENTIFIER, "expected $kind name.")
         consume(TokenType.LEFT_PAREN, "expected '(' after $kind name.")
 

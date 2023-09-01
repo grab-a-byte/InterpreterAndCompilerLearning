@@ -24,11 +24,13 @@ fun main(args: Array<String>) {
 
     defineAst(outputDir, "Stmt", listOf(
         "Block: List<Stmt?> statements",
+        "Class: Token name, List<Stmt.Function> methods",
         "Expression: Expr expression",
         "Function: Token name, List<Token> args, List<Stmt?> body",
         "If: Expr condition, Stmt branch, Stmt? elseBranch",
         "Var: Token name, Expr? initializer",
         "Print: Expr expression",
+        "Return: Token keyword, Expr? value",
         "While: Expr condition, Stmt body"
     ))
 }

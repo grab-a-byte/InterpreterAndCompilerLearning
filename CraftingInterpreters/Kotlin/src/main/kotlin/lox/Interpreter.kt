@@ -7,6 +7,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
 
     val globals = Environment()
     private var environment = globals
+    private val locals: MutableMap<Expr, Int> = mutableMapOf()
 
     init {
         globals.define("clock", object: LoxCallable {
@@ -14,6 +15,10 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
             override fun call(interpreter: Interpreter, args: List<Any?>) : Any =  System.currentTimeMillis()
             override fun toString(): String = "<native fun>"
         })
+    }
+
+    fun resolve(expr: Expr, depth: Int) {
+        locals[expr] = depth
     }
 
     fun interpret(stmts: List<Stmt?>) {
@@ -33,7 +38,9 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
 
     override fun visitAssignExpr(expr: Expr.Assign): Any? {
         val value = evaluate(expr.value)
-        environment.assign(expr.name, value)
+        val distance = locals[expr]
+        if (distance != null)  environment.assignAt(distance, expr.name, value)
+        else environment.assign(expr.name, value)
         return value
     }
 
@@ -120,7 +127,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
         return evaluate(expr.right)
     }
 
-    override fun visitVariableExpr(expr: Expr.Variable): Any? = environment.get(expr.name)
+    override fun visitVariableExpr(expr: Expr.Variable): Any? = lookupVariable(expr.name, expr)
 
     override fun visitUnaryExpr(expr: Expr.Unary): Any? {
         val right = evaluate(expr.right)
@@ -189,13 +196,20 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
 
     override fun visitBlockStmt(stmt: Stmt.Block): Any? = executeBlock(stmt.statements, Environment(environment))
 
+    override fun visitClassStmt(stmt: Stmt.Class): Any? {
+        environment.define(stmt.name.lexeme, null)
+        val klass =  LoxClass(stmt.name.lexeme)
+        environment.define(klass.name, klass)
+        return null
+    }
+
     override fun visitExpressionStmt(stmt: Stmt.Expression): Any? {
         evaluate(stmt.expression)
         return null
     }
 
     override fun visitFunctionStmt(stmt: Stmt.Function): Any? {
-        val function = LoxFunction(stmt)
+        val function = LoxFunction(stmt, environment)
         environment.define(stmt.name.lexeme, function)
         return null
     }
@@ -224,11 +238,26 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
         return null
     }
 
+    override fun visitReturnStmt(stmt: Stmt.Return): Any? {
+        val value = if(stmt.value == null) null else evaluate(stmt.value)
+        throw Return(value)
+    }
+
     override fun visitWhileStmt(stmt: Stmt.While): Any? {
         while (isTruthy(evaluate(stmt.condition))) {
             execute(stmt.body)
         }
 
         return null
+    }
+
+    private fun lookupVariable(name: Token, expr: Expr) : Any? {
+        val distance = locals.get(expr)
+        return if (distance != null) {
+            environment.getAt(distance, name.lexeme)
+        } else {
+            globals.get(name)
+        }
+
     }
 }
