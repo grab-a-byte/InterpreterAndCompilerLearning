@@ -3,6 +3,7 @@ package lox
 import expressions.Expr
 import expressions.Stmt
 import java.lang.RuntimeException
+import java.util.function.Consumer
 
 class Parser(private val tokens: List<Token>) {
 
@@ -167,6 +168,9 @@ class Parser(private val tokens: List<Token>) {
         while(true) {
             if (match(TokenType.LEFT_PAREN)) {
                 expr = finishCall(expr)
+            } else if (match(TokenType.DOT)) {
+                val name = consume(TokenType.IDENTIFIER, "expected property name after .")
+                expr = Expr.Get(expr, name)
             } else {
                 break;
             }
@@ -199,6 +203,8 @@ class Parser(private val tokens: List<Token>) {
             if (expr is Expr.Variable) {
                 val name = expr.name
                 return Expr.Assign(name, value)
+            } else if (expr is Expr.Get) {
+                return Expr.Set(expr.obj, expr.name, value)
             }
 
             error(equals, "Invalid assignment target")

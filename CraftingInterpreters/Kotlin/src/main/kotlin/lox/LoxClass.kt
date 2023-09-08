@@ -1,6 +1,6 @@
 package lox
 
-class LoxClass(val name : String) : LoxCallable {
+class LoxClass(val name : String, private val methods: Map<String, LoxFunction>) : LoxCallable {
     override fun arity(): Int = 0
 
     override fun call(interpreter: Interpreter, args: List<Any?>): Any? {
@@ -9,4 +9,12 @@ class LoxClass(val name : String) : LoxCallable {
     }
 
     override fun toString() = name
+
+    fun findMethod(name: String): Any? {
+       if (methods.containsKey(name)) {
+           return methods[name]
+       }
+
+       return null
+    }
 }

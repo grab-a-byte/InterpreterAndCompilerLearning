@@ -5,7 +5,7 @@ import expressions.Stmt
 
 class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
 
-    val globals = Environment()
+    private val globals = Environment()
     private var environment = globals
     private val locals: MutableMap<Expr, Int> = mutableMapOf()
 
@@ -108,6 +108,15 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
         return function.call(this, args)
     }
 
+    override fun visitGetExpr(expr: Expr.Get): Any? {
+       val obj = evaluate(expr.obj)
+        if (obj is LoxInstance) {
+            return obj.get(expr.name)
+        }
+
+        throw RuntimeError(expr.name, "Only instances have properties")
+    }
+
     private fun isEqual(left: Any?, right: Any?): Boolean {
         return if (left == null && right == null) true
         else left?.equals(right) ?: false
@@ -125,6 +134,16 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
         }
 
         return evaluate(expr.right)
+    }
+
+    override fun visitSetExpr(expr: Expr.Set): Any? {
+       val obj = evaluate(expr.obj)
+        if (obj !is LoxInstance) {
+            throw RuntimeError(expr.name, "Only instances have fields")
+        }
+        val value = evaluate(expr.value)
+        obj.set(expr.name, value)
+        return value
     }
 
     override fun visitVariableExpr(expr: Expr.Variable): Any? = lookupVariable(expr.name, expr)
@@ -198,7 +217,14 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
 
     override fun visitClassStmt(stmt: Stmt.Class): Any? {
         environment.define(stmt.name.lexeme, null)
-        val klass =  LoxClass(stmt.name.lexeme)
+
+        val methods = mutableMapOf<String, LoxFunction>()
+        for (method in stmt.methods) {
+            val function = LoxFunction(method, environment)
+            methods.set(method.name.lexeme, function)
+        }
+
+        val klass =  LoxClass(stmt.name.lexeme, methods)
         environment.define(klass.name, klass)
         return null
     }

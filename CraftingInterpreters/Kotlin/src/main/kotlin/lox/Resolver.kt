@@ -7,7 +7,7 @@ import java.util.Stack
 class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
 
     private enum class FunctionType {
-        None, Function
+        None, Function, Method
     }
 
     private val scopes : Stack<MutableMap<String, Boolean>> = Stack()
@@ -30,6 +30,10 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
         }
     }
 
+    override fun visitGetExpr(expr: Expr.Get) {
+      resolve(expr.obj)
+    }
+
     override fun visitGroupingExpr(expr: Expr.Grouping) {
         resolve(expr.expression)
     }
@@ -39,6 +43,11 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
     override fun visitLogicalExpr(expr: Expr.Logical) {
         resolve(expr.left)
         resolve(expr.right)
+    }
+
+    override fun visitSetExpr(expr: Expr.Set) {
+       resolve(expr.value)
+       resolve(expr.obj)
     }
 
     override fun visitVariableExpr(expr: Expr.Variable) {
@@ -61,6 +70,10 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
     override fun visitClassStmt(stmt: Stmt.Class) {
         declare(stmt.name)
         define(stmt.name)
+        for (method in stmt.methods) {
+            val declaration = FunctionType.Method
+            resolveFunction(method, declaration)
+        }
     }
 
     override fun visitExpressionStmt(stmt: Stmt.Expression) {

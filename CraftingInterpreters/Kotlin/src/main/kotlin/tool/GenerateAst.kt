@@ -15,9 +15,11 @@ fun main(args: Array<String>) {
         "Assign: Token name, Expr value",
         "Binary: Expr left, Token operator, Expr right",
         "Call: Expr callee, Token paren, List<Expr> params",
+        "Get: Expr obj, Token name",
         "Grouping: Expr expression",
         "Literal: Any? value",
         "Logical: Expr left, Token operator, Expr right",
+        "Set: Expr obj, Token name, Expr value",
         "Variable: Token name",
         "Unary: Token operator, Expr right"
     ))
