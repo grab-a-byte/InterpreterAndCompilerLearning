@@ -7,7 +7,7 @@ import java.util.Stack
 class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
 
     private enum class FunctionType {
-        None, Function, Method
+        None, Function, Method, Initializer
     }
 
     private enum class ClassType {
@@ -92,7 +92,7 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
         scopes.peek().set("this", true)
 
         for (method in stmt.methods) {
-            val declaration = FunctionType.Method
+            val declaration = if (method.name.lexeme == "init") { FunctionType.Initializer } else { FunctionType.Method }
             resolveFunction(method, declaration)
         }
 
@@ -132,6 +132,9 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
     override fun visitReturnStmt(stmt: Stmt.Return) {
         if (currentFunction == FunctionType.None) {
             Lox.error(stmt.keyword, "Can't return from top level code")
+        }
+        if (currentFunction == FunctionType.Initializer) {
+            Lox.error(stmt.keyword, "unable to return value from initializer")
         }
         if (stmt.value != null) resolve(stmt.value)
     }
