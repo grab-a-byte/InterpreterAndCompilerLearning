@@ -146,6 +146,10 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Any?> {
         return value
     }
 
+    override fun visitThisExpr(expr: Expr.This): Any? {
+      return lookupVariable(expr.keyword, expr)
+    }
+
     override fun visitVariableExpr(expr: Expr.Variable): Any? = lookupVariable(expr.name, expr)
 
     override fun visitUnaryExpr(expr: Expr.Unary): Any? {

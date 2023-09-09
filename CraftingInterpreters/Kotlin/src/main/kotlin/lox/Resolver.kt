@@ -10,8 +10,14 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
         None, Function, Method
     }
 
+    private enum class ClassType {
+        None, Class
+    }
+
     private val scopes : Stack<MutableMap<String, Boolean>> = Stack()
     private var currentFunction = FunctionType.None
+    private var currentClass = ClassType.None
+
 
     override fun visitAssignExpr(expr: Expr.Assign) {
         resolve(expr.value)
@@ -50,6 +56,14 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
        resolve(expr.obj)
     }
 
+    override fun visitThisExpr(expr: Expr.This) {
+        if (currentClass != ClassType.Class) {
+            Lox.error(expr.keyword, "cannot use this outside of a class definition")
+            return
+        }
+        resolveLocal(expr, expr.keyword)
+    }
+
     override fun visitVariableExpr(expr: Expr.Variable) {
         if (!scopes.isEmpty() && scopes.peek().get(expr.name.lexeme) == false) {
             Lox.error(expr.name, "Can't read local variable in its own initializer.")
@@ -68,12 +82,23 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
     }
 
     override fun visitClassStmt(stmt: Stmt.Class) {
+        val enclosingClass = currentClass
+        currentClass = ClassType.Class
+
         declare(stmt.name)
         define(stmt.name)
+
+        beginScope()
+        scopes.peek().set("this", true)
+
         for (method in stmt.methods) {
             val declaration = FunctionType.Method
             resolveFunction(method, declaration)
         }
+
+        endScope()
+
+        currentClass = enclosingClass
     }
 
     override fun visitExpressionStmt(stmt: Stmt.Expression) {

@@ -248,6 +248,7 @@ class Parser(private val tokens: List<Token>) {
         else if (match(TokenType.TRUE)) return Expr.Literal(true)
         else if (match(TokenType.NIL)) return Expr.Literal(null)
         else if (match(TokenType.NUMBER, TokenType.STRING)) return Expr.Literal(previous().literal)
+        else if (match(TokenType.THIS)) return Expr.This(previous())
         else if (match(TokenType.IDENTIFIER)) return Expr.Variable(previous())
         else if(match(TokenType.LEFT_PAREN)) {
             val expr = expression()
