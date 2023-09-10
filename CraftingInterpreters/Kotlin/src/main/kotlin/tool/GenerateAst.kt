@@ -20,6 +20,7 @@ fun main(args: Array<String>) {
         "Literal: Any? value",
         "Logical: Expr left, Token operator, Expr right",
         "Set: Expr obj, Token name, Expr value",
+        "Super: Token keyword, Token method",
         "This: Token keyword",
         "Variable: Token name",
         "Unary: Token operator, Expr right"
@@ -27,7 +28,7 @@ fun main(args: Array<String>) {
 
     defineAst(outputDir, "Stmt", listOf(
         "Block: List<Stmt?> statements",
-        "Class: Token name, List<Stmt.Function> methods",
+        "Class: Token name, Expr.Variable? superclass, List<Stmt.Function> methods",
         "Expression: Expr expression",
         "Function: Token name, List<Token> args, List<Stmt?> body",
         "If: Expr condition, Stmt branch, Stmt? elseBranch",
@@ -75,6 +76,7 @@ private fun defineAst(
 private fun defineType(baseName: String, className: String, fieldsList: String): String {
     val str = StringBuilder()
     str.appendLine("    class $className (")
+
 
     val fields = fieldsList.split(", ")
     fields.forEachIndexed { index, it ->

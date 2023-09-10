@@ -2,8 +2,6 @@ package lox
 
 import expressions.Expr
 import expressions.Stmt
-import java.lang.RuntimeException
-import java.util.function.Consumer
 
 class Parser(private val tokens: List<Token>) {
 
@@ -53,13 +51,19 @@ class Parser(private val tokens: List<Token>) {
     //Statement parsers
     private fun classDeclaration() : Stmt {
         val name = consume(TokenType.IDENTIFIER, "expected class name")
+        val superclass = if (match(TokenType.LESS)) {
+            consume(TokenType.IDENTIFIER, "expect superclass name");
+            Expr.Variable(previous())
+        } else {
+            null
+        }
         consume(TokenType.LEFT_BRACE, "expect left brace after class name")
         val methods : MutableList<Stmt.Function> = mutableListOf()
         while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()){
             methods.add(functionStatement("method"))
         }
         consume(TokenType.RIGHT_BRACE, "expect right brace at end of class")
-        return Stmt.Class(name, methods.toList())
+        return Stmt.Class(name, superclass, methods.toList())
     }
 
     private fun returnStatement() : Stmt {
@@ -244,19 +248,26 @@ class Parser(private val tokens: List<Token>) {
     private fun factor() = parseUntil(::unary, TokenType.SLASH, TokenType.STAR)
     private fun unary() = parseUntil(::call, TokenType.BANG, TokenType.MINUS)
     private fun primary() : Expr {
-        if (match(TokenType.FALSE)) return Expr.Literal(false)
-        else if (match(TokenType.TRUE)) return Expr.Literal(true)
-        else if (match(TokenType.NIL)) return Expr.Literal(null)
-        else if (match(TokenType.NUMBER, TokenType.STRING)) return Expr.Literal(previous().literal)
-        else if (match(TokenType.THIS)) return Expr.This(previous())
-        else if (match(TokenType.IDENTIFIER)) return Expr.Variable(previous())
+        return if (match(TokenType.FALSE)) Expr.Literal(false)
+        else if (match(TokenType.TRUE)) Expr.Literal(true)
+        else if (match(TokenType.NIL)) Expr.Literal(null)
+        else if (match(TokenType.NUMBER, TokenType.STRING)) Expr.Literal(previous().literal)
+        else if (match(TokenType.THIS)) Expr.This(previous())
+        else if (match(TokenType.IDENTIFIER)) Expr.Variable(previous())
         else if(match(TokenType.LEFT_PAREN)) {
             val expr = expression()
             consume(TokenType.RIGHT_PAREN, "Expect ')' after expressions.")
-            return Expr.Grouping(expr)
+            Expr.Grouping(expr)
         }
-
-        throw error(peek(), "expected expression")
+        else if (match(TokenType.SUPER)) {
+            val keyword = previous()
+            consume(TokenType.DOT, "expected '.' after 'super'")
+            val method = consume(TokenType.IDENTIFIER, "expect 'super.method' syntax, not method name found")
+            Expr.Super(keyword, method)
+        }
+        else {
+            throw error(peek(), "expected expression")
+        }
     }
 
     private fun parseUntil(func: () -> Expr, vararg types: TokenType)  : Expr {

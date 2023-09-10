@@ -1,6 +1,7 @@
 package lox
 
-class LoxClass(val name : String, private val methods: Map<String, LoxFunction>) : LoxCallable {
+class LoxClass(val name: String, private val superclass: LoxClass?, private val methods: Map<String, LoxFunction>) :
+    LoxCallable {
     override fun arity(): Int {
         val init = findMethod("init")
         return init?.arity() ?: 0
@@ -16,10 +17,14 @@ class LoxClass(val name : String, private val methods: Map<String, LoxFunction>)
     override fun toString() = name
 
     fun findMethod(name: String): LoxFunction? {
-       if (methods.containsKey(name)) {
-           return methods[name]
-       }
+        if (methods.containsKey(name)) {
+            return methods[name]
+        }
 
-       return null
+        if (superclass != null) {
+            return superclass.findMethod(name)
+        }
+
+        return null
     }
 }

@@ -11,7 +11,7 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
     }
 
     private enum class ClassType {
-        None, Class
+        None, Class, SubClass
     }
 
     private val scopes : Stack<MutableMap<String, Boolean>> = Stack()
@@ -56,6 +56,15 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
        resolve(expr.obj)
     }
 
+    override fun visitSuperExpr(expr: Expr.Super) {
+        if (currentClass == ClassType.None) {
+            Lox.error(expr.keyword, "Cant use 'super' outside of a class")
+        } else if (currentClass == ClassType.Class) {
+            Lox.error(expr.keyword, "Can't use 'super' in a class with not superclass")
+        }
+       resolveLocal(expr, expr.keyword)
+    }
+
     override fun visitThisExpr(expr: Expr.This) {
         if (currentClass != ClassType.Class) {
             Lox.error(expr.keyword, "cannot use this outside of a class definition")
@@ -88,6 +97,17 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
         declare(stmt.name)
         define(stmt.name)
 
+        if (stmt.name.lexeme == stmt.superclass?.name?.lexeme) {
+            Lox.error(stmt.superclass.name, "A class cannot inherit from itself")
+        }
+
+        if (stmt.superclass != null) {
+            currentClass = ClassType.SubClass
+            resolve(stmt.superclass)
+            beginScope()
+            scopes.peek().set("super", true)
+        }
+
         beginScope()
         scopes.peek().set("this", true)
 
@@ -97,6 +117,7 @@ class Resolver(private val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.
         }
 
         endScope()
+        if (stmt.superclass != null) endScope()
 
         currentClass = enclosingClass
     }
