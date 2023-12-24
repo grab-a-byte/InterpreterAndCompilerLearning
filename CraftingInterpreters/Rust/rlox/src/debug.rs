@@ -1,4 +1,7 @@
-use crate::{chunk::{Chunk, OpCodes}, value::LoxValue};
+use crate::{
+    chunk::{Chunk, OpCodes},
+    value::LoxValue,
+};
 
 pub fn disassemble_chunk(chunk: Chunk, name: String) {
     println!("{}", name);
@@ -9,7 +12,9 @@ pub fn disassemble_chunk(chunk: Chunk, name: String) {
         print!("{:04} ", offset);
         match opcode {
             OpCodes::OpReturn => offset += simple_instruction(String::from("OP_RETURN")),
-            OpCodes::OpConstant => offset += constant_instruction(String::from("OP_CONSTANT"), &chunk, offset)
+            OpCodes::OpConstant => {
+                offset += constant_instruction(String::from("OP_CONSTANT"), &chunk, offset)
+            }
         }
     }
 }
@@ -20,7 +25,7 @@ fn simple_instruction(name: String) -> usize {
 }
 
 fn constant_instruction(name: String, chunk: &Chunk, offset: usize) -> usize {
-    let constant : LoxValue = chunk.constants[usize::from(chunk.code[offset + 1])];
+    let constant: LoxValue = chunk.constants[usize::from(chunk.code[offset + 1])];
     println!("{}, {:.2}", name, constant);
     return 2;
 }

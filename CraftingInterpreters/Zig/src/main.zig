@@ -12,11 +12,14 @@ pub fn main() !void {
     const constIndex = try newChunk.addConstant(1.2);
     try newChunk.writeOp(OpCodes.OP_CONSTANT, 123);
     try newChunk.write(@as(u8, @truncate(constIndex)), 345);
+    try newChunk.writeOp(OpCodes.OP_NEGATE, 123);
     try newChunk.writeOp(OpCodes.OP_RETURN, 123);
-    // debug.disassembleChunk(&newChunk, "test chunk");
+    _ = debug.disassembleChunk(&newChunk, "test chunk");
 
-    // newChunk.free();
+    std.debug.print("\n", .{});
 
     var vm = VM.init(&newChunk);
-    _ = vm.interpret();
+    _ = vm.interpret(true);
+
+    newChunk.free();
 }

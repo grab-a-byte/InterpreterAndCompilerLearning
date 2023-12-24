@@ -1,6 +1,5 @@
 use crate::value::LoxValue;
 
-
 pub enum OpCodes {
     OpReturn = 0,
     OpConstant = 1,
