@@ -2,10 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "common.h"
-#include "chunk.h"
 #include "vm.h"
-#include "debug.h"
 
 static void repl() {
     char line[1024];
@@ -95,3 +92,4 @@ int main(int argc, char* argv[]) {
     }
 
     disassembleChunk(&chunk, "1st Test Chunk");*/
+

@@ -98,7 +98,7 @@ static Token string() {
 
 	//Remove final '"'
 	advance();
-	makeToken(TOKEN_STRING);
+	return makeToken(TOKEN_STRING);
 }
 
 static bool isDigit(char c) {

@@ -104,6 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -127,14 +128,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="chunk.cpp" />
-    <ClCompile Include="compiler.cpp" />
-    <ClCompile Include="CraftingInterpreters.cpp" />
-    <ClCompile Include="debug.cpp" />
-    <ClCompile Include="memory.cpp" />
-    <ClCompile Include="scanner.cpp" />
-    <ClCompile Include="value.cpp" />
-    <ClCompile Include="vm.cpp" />
+    <ClCompile Include="chunk.c" />
+    <ClCompile Include="compiler.c" />
+    <ClCompile Include="CraftingInterpreters.c" />
+    <ClCompile Include="debug.c" />
+    <ClCompile Include="memory.c" />
+    <ClCompile Include="object.c" />
+    <ClCompile Include="scanner.c" />
+    <ClCompile Include="value.c" />
+    <ClCompile Include="vm.c" />
+    <ClCompile Include="table.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chunk.h" />
@@ -142,9 +145,10 @@
     <ClInclude Include="compiler.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="memory.h" />
+    <ClInclude Include="object.h" />
     <ClInclude Include="scanner.h" />
     <ClInclude Include="value.h" />
-    <ClInclude Include="vm.h" />
+    <ClInclude Include="table.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
