@@ -25,12 +25,6 @@ void freeValueArray(ValueArray* arr) {
 	initValueArray(arr);
 }
 
-void printObject(Value value) {
-	switch(OBJECT_TYPE(value)) {
-		case OBJ_STRING: printf("%s", AS_CSTRING(value)); break;
-	}
-}
-
 void printValue(Value value) {
 	switch (value.type) {
 		case VAL_BOOL: printf(AS_BOOL(value) ? "true" : "false"); break;

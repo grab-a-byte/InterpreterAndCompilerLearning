@@ -66,7 +66,7 @@ static void skipWhitespace() {
 		char c = peek();
 		switch(c) {
 			case ' ':
-			case ' \r':
+			case '\r':
 			case '\t':
 				advance();
 				break;
