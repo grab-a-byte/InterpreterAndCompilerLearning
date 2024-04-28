@@ -1,8 +1,5 @@
-import expressions.Expr
 //import lox.AstPrinter
 import lox.Lox
-import lox.Token
-import lox.TokenType
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
