@@ -100,7 +100,7 @@ static void printFunction(ObjFunction* function) {
 		printf("<fn %s>", function->name->chars);
 	}
 	else {
-		printfs("<script>");
+		printf("<script>");
 	}
 }
 

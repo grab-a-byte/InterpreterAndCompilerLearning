@@ -45,13 +45,17 @@ typedef struct {
 	int upvalueCount;
 } ObjFunction;
 
+typedef struct ObjUpvalue {
+	Obj obj;
+	Value* location;
+} ObjUpvalue;
+
 typedef struct {
 	Obj obj;
 	ObjFunction* function;
 	ObjUpvalue** upvalues;
 	int upvalueCount;
 } ObjClosure;
-
 
 typedef Value (*NativeFn)(int argCount, Value* args);
 
@@ -60,10 +64,6 @@ typedef struct {
 	NativeFn function;
 } ObjNative;
 
-typedef struct ObjUpvalue {
-	Obj obj;
-	Value* location;
-} ObjUpvalue;
 
 ObjString* takeString(char* chars, int length);
 ObjString* copyString(const char* chars, int length);
