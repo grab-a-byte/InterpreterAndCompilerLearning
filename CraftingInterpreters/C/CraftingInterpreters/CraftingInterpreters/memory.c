@@ -4,8 +4,18 @@
 #include "value.h"
 #include "vm.h"
 #include <stdlib.h>
+#ifdef DEBUG_LOG_GC
+#include <stdio.h>
+#include "debug.h"
+#endif
 
 void *reallocate(void *pointer, size_t oldSize, size_t newSize) {
+
+    if (newSize > oldSize) {
+#ifdef DEBUG_STRESS_GC
+        collectGarbage();
+#endif
+    }
   if (newSize == 0) {
     free(pointer);
     return NULL;
@@ -17,6 +27,9 @@ void *reallocate(void *pointer, size_t oldSize, size_t newSize) {
 }
 
 void freeObject(Obj *object) {
+#ifdef DEBUG_LOG_GC
+    printf("%p free type %d\n", (void*)object, object->type);
+#endif
   switch (object->type) {
   case OBJ_STRING: {
     ObjString *string = (ObjString *)object;
@@ -54,4 +67,37 @@ void freeObjects() {
     freeObject(object);
     object = next;
   }
+}
+
+void markObject(Obj* obj) {
+    if (obj == NULL) return;
+#ifdef DEBUG_LOG_GC
+    printf("%p mark ", (void*)obj);
+    printValue(OBJ_VAL(obj));
+    printf("\n");
+#endif
+    obj->isMarked = true;
+}
+
+void markValue(Value value) {
+    if (IS_OBJ(value)) markObject(AS_OBJ(value));
+}
+
+static void markRoots() {
+    for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
+        markValue(*slot);
+    }
+
+    markTable(&vm.globals);
+}
+
+void collectGarbage() {
+#ifdef DEBUG_LOG_GC
+    printf("-- gc begin \n");
+#endif
+    markRoots();
+
+#ifdef DEBUG_LOG_GC
+    printf("-- gc end\n");
+#endif
 }
