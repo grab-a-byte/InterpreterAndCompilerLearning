@@ -237,6 +237,7 @@ static InterpretResult run() {
 				return INTERPRET_RUNTIME_ERROR;
 			}
 			push(NUMBER_VAL(-AS_NUMBER(pop())));
+			break;
 		}
 		case OP_NIL:
 			push(NIL_VAL);
