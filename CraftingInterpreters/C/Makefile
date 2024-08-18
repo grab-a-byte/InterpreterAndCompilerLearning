@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -pedantic -w 
+CFLAGS=-Wall -Wextra -pedantic -w -ggdb
 
 BUILDDIR=build
 SRC=$(wildcard *.c)

@@ -39,14 +39,12 @@ type (
 )
 
 type Parser struct {
-	l      *lexer.Lexer
-	errors []string
-
-	curToken  token.Token
-	peekToken token.Token
-
+	l              *lexer.Lexer
 	prefixParseFns map[token.TokenType]prefixParseFn
 	infixParseFns  map[token.TokenType]infixParseFn
+	curToken       token.Token
+	peekToken      token.Token
+	errors         []string
 }
 
 func New(l *lexer.Lexer) *Parser {
