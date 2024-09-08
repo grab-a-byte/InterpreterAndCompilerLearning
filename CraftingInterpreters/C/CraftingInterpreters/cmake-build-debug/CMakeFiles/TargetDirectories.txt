@@ -1,0 +1,3 @@
+C:/Users/mrpar/Documents/Projects/InterpreterAndCompilerLearning/CraftingInterpreters/C/CraftingInterpreters/cmake-build-debug/CMakeFiles/CraftingInterpreters.dir
+C:/Users/mrpar/Documents/Projects/InterpreterAndCompilerLearning/CraftingInterpreters/C/CraftingInterpreters/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/mrpar/Documents/Projects/InterpreterAndCompilerLearning/CraftingInterpreters/C/CraftingInterpreters/cmake-build-debug/CMakeFiles/rebuild_cache.dir

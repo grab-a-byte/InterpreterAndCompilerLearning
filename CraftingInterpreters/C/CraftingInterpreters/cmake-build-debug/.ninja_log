@@ -1,0 +1,13 @@
+# ninja log v6
+7	53	7475191368568191	CMakeFiles/CraftingInterpreters.dir/CraftingInterpreters.c.obj	b576f61b186d0dee
+3	51	7475192770746332	CMakeFiles/CraftingInterpreters.dir/debug.c.obj	1dc10cf1cc0d0af
+22	157	7475105526434218	CMakeFiles/CraftingInterpreters.dir/memory.c.obj	76181783df56e523
+4	56	7475191368538136	CMakeFiles/CraftingInterpreters.dir/chunk.c.obj	baf565693dbdf385
+51	109	7475192771227491	CraftingInterpreters.exe	131c08349745ba6b
+11	53	7475191368618172	CMakeFiles/CraftingInterpreters.dir/value.c.obj	9637a3215dfdd7fe
+6	50	7475204272156057	CMakeFiles/CraftingInterpreters.dir/CraftingInterpreters.c.obj	b576f61b186d0dee
+3	53	7475204272126087	CMakeFiles/CraftingInterpreters.dir/chunk.c.obj	baf565693dbdf385
+9	60	7475204272176086	CMakeFiles/CraftingInterpreters.dir/debug.c.obj	1dc10cf1cc0d0af
+60	119	7475204272691229	CraftingInterpreters.exe	131c08349745ba6b
+4	54	7475204510583446	CMakeFiles/CraftingInterpreters.dir/debug.c.obj	1dc10cf1cc0d0af
+54	112	7475204511093425	CraftingInterpreters.exe	131c08349745ba6b

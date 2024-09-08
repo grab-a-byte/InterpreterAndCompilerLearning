@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{581a0a37-3964-4f1d-8321-15ae68cd882b}</ProjectGuid>
+    <ProjectGuid>{7932f58f-b8d7-4b45-b5b1-dfbe6380157d}</ProjectGuid>
     <RootNamespace>CraftingInterpreters</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -127,28 +127,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="chunk.h" />
-    <ClInclude Include="common.h" />
-    <ClInclude Include="compiler.h" />
-    <ClInclude Include="debug.h" />
-    <ClInclude Include="memory.h" />
-    <ClInclude Include="object.h" />
-    <ClInclude Include="scanner.h" />
-    <ClInclude Include="table.h" />
-    <ClInclude Include="value.h" />
-    <ClInclude Include="vm.h" />
+    <ClCompile Include="chunk.c" />
+    <ClCompile Include="CraftingInterpreters.c" />
+    <ClCompile Include="memory.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="chunk.c" />
-    <ClCompile Include="compiler.c" />
-    <ClCompile Include="CraftingInterpreters.c" />
-    <ClCompile Include="debug.c" />
-    <ClCompile Include="memory.c" />
-    <ClCompile Include="object.c" />
-    <ClCompile Include="scanner.c" />
-    <ClCompile Include="table.c" />
-    <ClCompile Include="value.c" />
-    <ClCompile Include="vm.c" />
+    <None Include="common.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="chunk.h" />
+    <ClInclude Include="memory.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
