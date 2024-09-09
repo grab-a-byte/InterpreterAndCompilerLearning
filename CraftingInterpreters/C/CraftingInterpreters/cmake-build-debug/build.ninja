@@ -84,6 +84,13 @@ build CMakeFiles/CraftingInterpreters.dir/value.c.obj: C_COMPILER__CraftingInter
   OBJECT_DIR = CMakeFiles\CraftingInterpreters.dir
   OBJECT_FILE_DIR = CMakeFiles\CraftingInterpreters.dir
 
+build CMakeFiles/CraftingInterpreters.dir/vm.c.obj: C_COMPILER__CraftingInterpreters_unscanned_Debug C$:/Users/mrpar/Documents/Projects/InterpreterAndCompilerLearning/CraftingInterpreters/C/CraftingInterpreters/vm.c || cmake_object_order_depends_target_CraftingInterpreters
+  DEP_FILE = CMakeFiles\CraftingInterpreters.dir\vm.c.obj.d
+  FLAGS = -g -std=gnu11 -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/mrpar/Documents/Projects/InterpreterAndCompilerLearning/CraftingInterpreters/C/CraftingInterpreters/.
+  OBJECT_DIR = CMakeFiles\CraftingInterpreters.dir
+  OBJECT_FILE_DIR = CMakeFiles\CraftingInterpreters.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target CraftingInterpreters
@@ -92,7 +99,7 @@ build CMakeFiles/CraftingInterpreters.dir/value.c.obj: C_COMPILER__CraftingInter
 #############################################
 # Link the executable CraftingInterpreters.exe
 
-build CraftingInterpreters.exe: C_EXECUTABLE_LINKER__CraftingInterpreters_Debug CMakeFiles/CraftingInterpreters.dir/chunk.c.obj CMakeFiles/CraftingInterpreters.dir/CraftingInterpreters.c.obj CMakeFiles/CraftingInterpreters.dir/memory.c.obj CMakeFiles/CraftingInterpreters.dir/debug.c.obj CMakeFiles/CraftingInterpreters.dir/value.c.obj
+build CraftingInterpreters.exe: C_EXECUTABLE_LINKER__CraftingInterpreters_Debug CMakeFiles/CraftingInterpreters.dir/chunk.c.obj CMakeFiles/CraftingInterpreters.dir/CraftingInterpreters.c.obj CMakeFiles/CraftingInterpreters.dir/memory.c.obj CMakeFiles/CraftingInterpreters.dir/debug.c.obj CMakeFiles/CraftingInterpreters.dir/value.c.obj CMakeFiles/CraftingInterpreters.dir/vm.c.obj
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\CraftingInterpreters.dir
