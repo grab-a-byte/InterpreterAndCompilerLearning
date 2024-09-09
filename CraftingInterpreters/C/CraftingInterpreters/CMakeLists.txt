@@ -15,4 +15,6 @@ add_executable(CraftingInterpreters
         debug.h
         debug.c
         value.h
-        value.c)
+        value.c
+        vm.h
+        vm.c)
