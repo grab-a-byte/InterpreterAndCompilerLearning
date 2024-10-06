@@ -3,3 +3,5 @@
 /CraftingInterpreters/C/x64/Debug
 CraftingInterpreters/C/build/main
 CraftingInterpreters/C/CraftingInterpreters/cmake-build-debug
+CraftingInterpreters/C/CraftingInterpreters/cmake-build-debug/Testing/Temporary
+CraftingInterpreters/C/CraftingInterpreters/cmake-build-debug

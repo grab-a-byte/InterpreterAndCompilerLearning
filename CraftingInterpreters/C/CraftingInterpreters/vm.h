@@ -23,6 +23,6 @@ void freeVM();
 void push(Value value);
 Value pop();
 
-InterpretResult interpret(Chunk* chunk);
+InterpretResult interpret(const char* source);
 
 #endif
