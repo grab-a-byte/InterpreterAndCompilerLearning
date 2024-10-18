@@ -39,13 +39,14 @@ static void repl() {
             printf("\n");
             break;
         }
+        printf("interpreting");
         interpret(line);
     }
 }
 
 static void runFile(char *path) {
     char *source = readFile(path);
-    InterpretResult result = interpret(source);
+    const InterpretResult result = interpret(source);
     free(source);
     if (result == INTERPRET_COMPILE_ERROR) exit(65);
     if (result == INTERPRET_RUNTIME_ERROR) exit(70);

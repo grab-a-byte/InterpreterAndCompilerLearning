@@ -5,6 +5,10 @@
 #include "scanner.h"
 #include <stdlib.h>
 
+#ifdef DEBUG_PRINT_CODE
+    #include "debug.h"
+#endif
+
 typedef struct {
     Token current;
     Token previous;
@@ -34,7 +38,9 @@ typedef struct {
     Precedence precedence;
 } ParseRule;
 
+static void expression();
 static ParseRule* getRule(TokenType tokenType);
+static void parsePrecedence(Precedence precedence);
 
 Parser parser;
 Chunk *compilingChunk;
@@ -100,10 +106,27 @@ static void emitReturn() {
 
 static void endCompiler() {
     emitReturn();
+#ifdef DEBUG_PRINT_CODE
+    if(!parser.hadError) {
+        disassembleChunk(currentChunk(), "code");
+    }
+#endif
 }
 
 static void parsePrecedence(Precedence precedence) {
-    //What goes here
+    advance();
+    const ParseFn prefixRule = getRule(parser.previous.type)->prefix;
+    if (prefixRule ==  NULL) {
+        error("Expect expression");
+        return;
+    }
+    prefixRule();
+
+    while(precedence <= getRule(parser.current.type) ->precedence) {
+        advance();
+        const ParseFn infixRule = getRule(parser.previous.type)->infix;
+        infixRule();
+    }
 }
 
 static void binary() {
@@ -214,6 +237,7 @@ bool compile(const char *source, Chunk *chunk) {
     parser.panicMode = false;
     parser.hadError = false;
     advance();
+    printf("calling expression");
     expression();
     consume(TOKEN_EOF, "Expect end of expression.");
     endCompiler();
