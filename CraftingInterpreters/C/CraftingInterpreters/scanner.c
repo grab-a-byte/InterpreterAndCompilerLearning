@@ -102,7 +102,7 @@ static bool isDigit(char c) {
     return c >= '0' && c <= '9';
 }
 
-static isAlpha(char c) {
+static bool isAlpha(char c) {
     return (c >= 'a' && c <= 'z')
         || (c >= 'A' && c <= 'Z')
         || c == '_';
@@ -116,7 +116,7 @@ static TokenType checkKeyword(int start, int length, char* rest, TokenType type)
     return TOKEN_IDENTIFIER;
 }
 
-static TokenType indentifierType() {
+static TokenType identifierType() {
     switch(scanner.start[0]) {
         case 'a': return checkKeyword(1, 2, "nd", TOKEN_AND);
         case 'c': return checkKeyword(1, 4, "lass", TOKEN_CLASS);

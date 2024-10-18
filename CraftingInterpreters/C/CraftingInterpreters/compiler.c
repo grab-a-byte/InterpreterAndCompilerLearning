@@ -34,6 +34,7 @@ typedef struct {
     Precedence precedence;
 } ParseRule;
 
+static ParseRule* getRule(TokenType tokenType);
 
 Parser parser;
 Chunk *compilingChunk;
@@ -202,6 +203,10 @@ ParseRule rules[] = {
     [TOKEN_ERROR] = {NULL, NULL, PREC_NONE},
     [TOKEN_EOF] = {NULL, NULL, PREC_NONE},
 };
+
+static ParseRule* getRule(TokenType tokenType) {
+    return &rules[tokenType];
+}
 
 bool compile(const char *source, Chunk *chunk) {
     initScanner(source);
