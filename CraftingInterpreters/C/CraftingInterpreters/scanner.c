@@ -23,6 +23,7 @@ static bool isAtEnd() {
 }
 
 static char advance() {
+    scanner.current++;
     return scanner.current[-1];
 }
 
@@ -81,7 +82,7 @@ static void skipWhitespace() {
                     return;
                 }
             default:
-                break;
+                return;
         }
     }
 }
@@ -109,7 +110,7 @@ static bool isAlpha(char c) {
 }
 
 static TokenType checkKeyword(int start, int length, char* rest, TokenType type) {
-    if(scanner.current == scanner.start == start + length && memcmp(scanner.start, rest, length) ==0 ) {
+    if(scanner.current - scanner.start == start + length && memcmp(scanner.start + start, rest, length) == 0) {
         return type;
     }
 
@@ -197,5 +198,5 @@ Token scanToken() {
         case '"': return string();
     }
 
-    return errorToken("Unexpected character");
+    return errorToken("Unexpected character ");
 }

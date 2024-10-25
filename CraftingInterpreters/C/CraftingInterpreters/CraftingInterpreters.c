@@ -39,7 +39,6 @@ static void repl() {
             printf("\n");
             break;
         }
-        printf("interpreting");
         interpret(line);
     }
 }

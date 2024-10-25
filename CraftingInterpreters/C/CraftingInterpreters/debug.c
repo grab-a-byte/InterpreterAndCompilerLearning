@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#include "object.h"
+
 void disassembleChunk(Chunk *chunk, const char *name) {
     printf("== %s ==\n", name);
     for (int offset = 0; offset < chunk->count;) {
@@ -46,12 +48,40 @@ int disassembleInstruction(Chunk *chunk, int offset) {
             return simpleInstruction("OP_MULTIPLY", offset);
         case OP_DIVIDE:
             return simpleInstruction("OP_DIVIDE", offset);
+        case OP_NIL:
+            return simpleInstruction("OP_NIL", offset);
+        case OP_TRUE:
+            return simpleInstruction("OP_TRUE", offset);
+        case OP_FALSE:
+            return simpleInstruction("OP_FALSE", offset);
+        case OP_NOT:
+            return simpleInstruction("OP_NOT", offset);
+        case OP_EQUAL:
+            return simpleInstruction("OP_EQUAL", offset);
+        case OP_GREATER:
+            return simpleInstruction("OP_GREATER", offset);
+        case OP_LESS:
+            return simpleInstruction("OP_LESS", offset);
         default:
             printf("Unknown opcode %d", instruction);
             return offset + 1;
     }
 }
 
-void printValue(Value value) {
-    printf("%g", value);
+static void printObject(Value value) {
+    switch (OBJ_TYPE(value)) {
+        case OBJ_STRING: {
+            printf("%s", AS_CSTRING(value));
+            break;
+        }
+    }
+}
+
+void printValue(const Value value) {
+    switch(value.type) {
+        case VAL_NUMBER:   printf("%g", AS_NUMBER(value)); break;
+        case VAL_NIL: printf("nil"); break;
+        case VAL_BOOL: printf(AS_BOOL(value) ? "true" : " false"); break;
+        case VAL_OBJ: printObject(value); break;
+    }
 }
