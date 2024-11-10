@@ -23,4 +23,6 @@ add_executable(CraftingInterpreters
         scanner.c
         scanner.h
         object.h
-        object.c)
+        object.c
+        table.c
+        table.h)
