@@ -24,7 +24,7 @@ void freeTable(Table *table) {
 }
 
 static Entry *findEntry(Entry *entries, int capacity, ObjString *key) {
-    uint32_t index = key->hash;
+    uint32_t index = key->hash % capacity;
     Entry *tombstone = NULL;
     for (;;) {
         Entry *entry = &entries[index];
@@ -51,7 +51,7 @@ static void adjustCapacity(Table *table, int capacity) {
     }
 
     table->count = 0;
-    for (int i = 0; i < capacity; i++) {
+    for (int i = 0; i < table->capacity; i++) {
         Entry *entry = &table->entries[i];
         if (entry->key == NULL) continue;
         Entry *dest = findEntry(entries, capacity, entry->key);
@@ -116,7 +116,7 @@ bool tableDelete(Table *table, ObjString *key) {
 ObjString *tableFindString(const Table *table, const char *chars, const int length, const uint32_t hash) {
     if (table->count == 0) return NULL;
 
-    uint32_t index = hash * table->capacity;
+    uint32_t index = hash % table->capacity;
     for (;;) {
         const Entry *entry = &table->entries[index];
         if (entry->key == NULL) {
